@@ -30,7 +30,7 @@ jobs:
         pelican -s publishconf.py
     - name: Update github pages branch
       run: |
-        git checkout gh-pages
+        git checkout --track origin/gh-pages
         git pull
         rm -rf docs
         mv output docs
