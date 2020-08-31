@@ -16,6 +16,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        persist-credentials: false
     - name: Set up Python 3.8
       uses: actions/setup-python@v2
       with:
@@ -28,12 +30,9 @@ jobs:
     - name: Build static site
       run: |
         pelican -s publishconf.py
-    - name: Update github pages branch
-      run: |
-        git fetch origin gh-pages:gh-pages
-        git checkout --track origin/gh-pages
-        git pull
-        rm -rf docs
-        mv output docs
-        git add docs
-        git commit -m "Automatic gh-pages build"
+    - name: Deploy 🚀
+      uses: JamesIves/github-pages-deploy-action@3.5.9
+      with:
+        GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+        BRANCH: gh-pages
+        FOLDER: output
