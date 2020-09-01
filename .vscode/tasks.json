@@ -6,7 +6,12 @@
         {
             "label": "Run pelican",
             "type": "shell",
-            "command": "pelican --listen -r"
+            "command": "pelican --listen -r",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            },
+            "problemMatcher": []
         }
     ]
 }
