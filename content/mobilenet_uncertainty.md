@@ -5,7 +5,7 @@ Category: Machine learning
 Tags: deep-learning, uncertainty-estiamtion
 Slug: mobilenet-uncertainty
 Authors: Frithjof Winkelmann
-Summary: Here I explore how uncertainty estimation can be done very quickly with mobilenet.
+Summary: Here I explore how uncertainty estimation can be done very quickly with mobilenet
 Todos: Add references (Line 32), add example in Detext app
 
 While writing my bachelor thesis, I often ended up using [Detexify](http://detexify.kirelabs.org/classify.html)

@@ -27,5 +27,7 @@ SOCIAL = (('Github', 'https://github.com/Hoff97'),
 
 DEFAULT_PAGINATION = 10
 
+SUMMARY_MAX_LENGTH = 100
+
 # Uncomment following line if you want document-relative URLs when developing
 #RELATIVE_URLS = True
