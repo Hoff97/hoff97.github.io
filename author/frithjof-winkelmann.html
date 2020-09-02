@@ -4,20 +4,21 @@
         <meta charset="utf-8" />
         <meta name="generator" content="Pelican" />
         <title>haskai - Frithjof Winkelmann</title>
-        <link rel="stylesheet" href="/theme/css/main.css" />
+        <link rel="stylesheet" href="https://hoff97.github.io/blog/theme/css/main.css" />
+        <link href="https://hoff97.github.io/blog/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="haskai Atom Feed" />
 </head>
 
 <body id="index" class="home">
         <header id="banner" class="body">
-                <h1><a href="/">haskai</a></h1>
+                <h1><a href="https://hoff97.github.io/blog/">haskai</a></h1>
                 <nav><ul>
-                    <li><a href="/category/machine-learning.html">Machine learning</a></li>
+                    <li><a href="https://hoff97.github.io/blog/category/machine-learning.html">Machine learning</a></li>
                 </ul></nav>
         </header><!-- /#banner -->
 
             <aside id="featured" class="body">
                 <article>
-                    <h1 class="entry-title"><a href="/mobilenet-uncertainty.html">Fast uncertainty estimation for mobilenet.</a></h1>
+                    <h1 class="entry-title"><a href="https://hoff97.github.io/blog/mobilenet-uncertainty.html">Fast uncertainty estimation for mobilenet.</a></h1>
 <footer class="post-info">
         <abbr class="published" title="2020-08-31T16:25:00+02:00">
                 Published: Mon 31 August 2020
@@ -28,10 +29,10 @@
         </abbr>
 
         <address class="vcard author">
-                By                         <a class="url fn" href="/author/frithjof-winkelmann.html">Frithjof Winkelmann</a>
+                By                         <a class="url fn" href="https://hoff97.github.io/blog/author/frithjof-winkelmann.html">Frithjof Winkelmann</a>
         </address>
-<p>In <a href="/category/machine-learning.html">Machine learning</a>.</p>
-<p>tags: <a href="/tag/deep-learning.html">deep-learning</a> <a href="/tag/uncertainty-estiamtion.html">uncertainty-estiamtion</a> </p>
+<p>In <a href="https://hoff97.github.io/blog/category/machine-learning.html">Machine learning</a>.</p>
+<p>tags: <a href="https://hoff97.github.io/blog/tag/deep-learning.html">deep-learning</a> <a href="https://hoff97.github.io/blog/tag/uncertainty-estiamtion.html">uncertainty-estiamtion</a> </p>
 </footer><!-- /.post-info --><p>While writing my bachelor thesis, I often ended up using <a href="http://detexify.kirelabs.org/classify.html">Detexify</a>
 to look up latex symbols I forgot. Unfortunately, mobile data doesnt work very
 well in germany, so when I was traveling a lot of times I could'nt access this page.
@@ -39,13 +40,13 @@ For this reason, I build <a href="https://detext.haskai.de/client/">Detext</a>,
 a progressive web app (PWA), that classifies latex symbols without needing
 a internet connection. It uses <a href="https://arxiv.org/abs/1704.04861">MobileNet</a>,
 which is run directly on the client side using <a href="https://github.com/microsoft/onnxjs">onnx.js</a>.</p>
-<p><img alt="" src="/images/mobilenet_uncertainty/detext_example.png" title="Example of detext predicting the latex code for the alpha character"></p>
+<p><img alt="" src="https://hoff97.github.io/blog/images/mobilenet_uncertainty/detext_example.png" title="Example of detext predicting the latex code for the alpha character"></p>
 <p>This works pretty well for most symbols. The only pet peeve I had with
 it until recently was, that it wont tell you when its not
 certain about the predicted symbol or simply predicts the wrong symbol.
 In the following example, the app predicts the <span class="math">\(\rightarrow\)</span> (\rightarrow) symbol,
 since it does'nt know <span class="math">\(\rightharpoonup\)</span> (\rightharpoonup).</p>
-<p><img alt="" src="/images/mobilenet_uncertainty/detext_wrong.png" title="Detext predicts \rightarrow since it doesnt know \rightharpoonup"></p>
+<p><img alt="" src="https://hoff97.github.io/blog/images/mobilenet_uncertainty/detext_wrong.png" title="Detext predicts \rightarrow since it doesnt know \rightharpoonup"></p>
 <p>Ideally of course, the prediction would include some uncertainty of the network.
 This is known as uncertainty estimation and a variety of approaches exist to
 solve it, for example using model ensembles, predicting a uncertainty or
@@ -58,9 +59,9 @@ to a network with test time dropout will then give different outputs,
 depending on which neurons stay enabled.</p>
 <p>Lets look at an example. The top-5 softmax values that mobilenet predicts
 for the following picture
-<img alt="" src="/images/mobilenet_uncertainty/rightharpoon.png" title="Hand drawn right harpoon symbol"></p>
+<img alt="" src="https://hoff97.github.io/blog/images/mobilenet_uncertainty/rightharpoon.png" title="Hand drawn right harpoon symbol"></p>
 <p>are shown in the plot below:</p>
-<p><img alt="" src="/images/mobilenet_uncertainty/wrong_softmax.png" title="Softmax of the top-5 classes"></p>
+<p><img alt="" src="https://hoff97.github.io/blog/images/mobilenet_uncertainty/wrong_softmax.png" title="Softmax of the top-5 classes"></p>
 <p>Since the <span class="math">\(\rightharpoonup\)</span> symbol is not in the training dataset, these
 are all wrong of course. Unfortunately, the softmax score for the top class
 is pretty high, so it can not be used as an uncertainty estimate.</p>
@@ -68,18 +69,18 @@ is pretty high, so it can not be used as an uncertainty estimate.</p>
 and look at the model predictions. For this we pass the same image
 through the network 100 times and visualize the predictions together with
 their variance:</p>
-<p><img alt="" src="/images/mobilenet_uncertainty/rightharpoonerr.png" title="Softmax of the top-5 classes with error bars"></p>
+<p><img alt="" src="https://hoff97.github.io/blog/images/mobilenet_uncertainty/rightharpoonerr.png" title="Softmax of the top-5 classes with error bars"></p>
 <p>Here the black bars indicate the standard deviation of the predicted
 softmax values. We can see that using test time dropout induces some variance.</p>
 <p>If we compare this to the prediction of a symbol that is included in the
 dataset, like the following</p>
-<p><img alt="Hand drawn right arrow symbol" src="/images/mobilenet_uncertainty/rightarrow.png" title="Hand drawn right arrow symbol"></p>
+<p><img alt="Hand drawn right arrow symbol" src="https://hoff97.github.io/blog/images/mobilenet_uncertainty/rightarrow.png" title="Hand drawn right arrow symbol"></p>
 <p>we can see that this has a lower variance:</p>
-<p><img alt="Softmax of the top-5 classes with error bars" src="/images/mobilenet_uncertainty/rightarrowerr.png" title="Softmax of the top-5 classes with error bars">.</p>
+<p><img alt="Softmax of the top-5 classes with error bars" src="https://hoff97.github.io/blog/images/mobilenet_uncertainty/rightarrowerr.png" title="Softmax of the top-5 classes with error bars">.</p>
 <p>Lets look at a few more examples. Here are the variances of symbols that are close to the training set:</p>
-<p><img alt="" src="/images/mobilenet_uncertainty/uncertain_good.png" title="Variances of images similar to the training set">.</p>
+<p><img alt="" src="https://hoff97.github.io/blog/images/mobilenet_uncertainty/uncertain_good.png" title="Variances of images similar to the training set">.</p>
 <p>And here those of pictures that are not found in the training set:</p>
-<p><img alt="" src="/images/mobilenet_uncertainty/uncertain_bad.png" title="Variances of images not similar to the training set">.</p>
+<p><img alt="" src="https://hoff97.github.io/blog/images/mobilenet_uncertainty/uncertain_bad.png" title="Variances of images not similar to the training set">.</p>
 <p>This is nice, since it allows us to detect when the model is uncertain about its
 predictions. Unfortunately, this approach requires us to make multiple
 forward passes through the model.
@@ -124,7 +125,7 @@ S = softmax(X)\\
 \Sigma^S = J^{softmax}(X) \Sigma^X J^{softmax}(X)^T
 $$</div>
 <p>Lets compare the variance we get with this estimate to the variance estimated from sampling:</p>
-<p><img alt="" src="/images/mobilenet_uncertainty/variance_comparison.png" title="Comparison of variance estimated from sampling and approximation"></p>
+<p><img alt="" src="https://hoff97.github.io/blog/images/mobilenet_uncertainty/variance_comparison.png" title="Comparison of variance estimated from sampling and approximation"></p>
 <p>We can see that the approximated variance is not exactly equal to the variance estimated from sampling, but it is generally
 higher for images that are not similar from the training set.</p>
 <p>This can be used as a rough indicator, when the prediction of MobileNet might not be trusted.</p>
@@ -201,6 +202,7 @@ higher for images that are not similar from the training set.</p>
                 <div class="social">
                         <h2>social</h2>
                         <ul>
+                            <li><a href="https://hoff97.github.io/blog/feeds/all.atom.xml" type="application/atom+xml" rel="alternate">atom feed</a></li>
 
                             <li><a href="https://github.com/Hoff97">Github</a></li>
                             <li><a href="https://www.linkedin.com/in/frithjof-winkelmann-338a99a8/">LinkedIn</a></li>

@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>haskai</title><link href="https://haskai.de/" rel="alternate"></link><link href="https://haskai.de/feeds/all.atom.xml" rel="self"></link><id>https://haskai.de/</id><updated>2020-08-31T16:25:00+02:00</updated><entry><title>Fast uncertainty estimation for mobilenet.</title><link href="https://haskai.de/mobilenet-uncertainty.html" rel="alternate"></link><published>2020-08-31T16:25:00+02:00</published><updated>2020-08-31T16:25:00+02:00</updated><author><name>Frithjof Winkelmann</name></author><id>tag:haskai.de,2020-08-31:/mobilenet-uncertainty.html</id><summary type="html">&lt;p&gt;Here I explore how uncertainty estimation can be done very quickly with mobilenet.&lt;/p&gt;</summary><content type="html">&lt;p&gt;While writing my bachelor thesis, I often ended up using &lt;a href="http://detexify.kirelabs.org/classify.html"&gt;Detexify&lt;/a&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>haskai</title><link href="https://hoff97.github.io/blog/" rel="alternate"></link><link href="https://hoff97.github.io/blog/feeds/all.atom.xml" rel="self"></link><id>https://hoff97.github.io/blog/</id><updated>2020-08-31T16:25:00+02:00</updated><entry><title>Fast uncertainty estimation for mobilenet.</title><link href="https://hoff97.github.io/blog/mobilenet-uncertainty.html" rel="alternate"></link><published>2020-08-31T16:25:00+02:00</published><updated>2020-08-31T16:25:00+02:00</updated><author><name>Frithjof Winkelmann</name></author><id>tag:hoff97.github.io,2020-08-31:/blog/mobilenet-uncertainty.html</id><summary type="html">&lt;p&gt;Here I explore how uncertainty estimation can be done very quickly with mobilenet.&lt;/p&gt;</summary><content type="html">&lt;p&gt;While writing my bachelor thesis, I often ended up using &lt;a href="http://detexify.kirelabs.org/classify.html"&gt;Detexify&lt;/a&gt;
 to look up latex symbols I forgot. Unfortunately, mobile data doesnt work very
 well in germany, so when I was traveling a lot of times I could'nt access this page.
 For this reason, I build &lt;a href="https://detext.haskai.de/client/"&gt;Detext&lt;/a&gt;,
 a progressive web app (PWA), that classifies latex symbols without needing
 a internet connection. It uses &lt;a href="https://arxiv.org/abs/1704.04861"&gt;MobileNet&lt;/a&gt;,
 which is run directly on the client side using &lt;a href="https://github.com/microsoft/onnxjs"&gt;onnx.js&lt;/a&gt;.&lt;/p&gt;
-&lt;p&gt;&lt;img alt="" src="https://haskai.de/images/mobilenet_uncertainty/detext_example.png" title="Example of detext predicting the latex code for the alpha character"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img alt="" src="https://hoff97.github.io/blog/images/mobilenet_uncertainty/detext_example.png" title="Example of detext predicting the latex code for the alpha character"&gt;&lt;/p&gt;
 &lt;p&gt;This works pretty well for most symbols. The only pet peeve I had with
 it until recently was, that it wont tell you when its not
 certain about the predicted symbol or simply predicts the wrong symbol.
 In the following example, the app predicts the &lt;span class="math"&gt;\(\rightarrow\)&lt;/span&gt; (\rightarrow) symbol,
 since it does'nt know &lt;span class="math"&gt;\(\rightharpoonup\)&lt;/span&gt; (\rightharpoonup).&lt;/p&gt;
-&lt;p&gt;&lt;img alt="" src="https://haskai.de/images/mobilenet_uncertainty/detext_wrong.png" title="Detext predicts \rightarrow since it doesnt know \rightharpoonup"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img alt="" src="https://hoff97.github.io/blog/images/mobilenet_uncertainty/detext_wrong.png" title="Detext predicts \rightarrow since it doesnt know \rightharpoonup"&gt;&lt;/p&gt;
 &lt;p&gt;Ideally of course, the prediction would include some uncertainty of the network.
 This is known as uncertainty estimation and a variety of approaches exist to
 solve it, for example using model ensembles, predicting a uncertainty or
@@ -25,9 +25,9 @@ to a network with test time dropout will then give different outputs,
 depending on which neurons stay enabled.&lt;/p&gt;
 &lt;p&gt;Lets look at an example. The top-5 softmax values that mobilenet predicts
 for the following picture
-&lt;img alt="" src="https://haskai.de/images/mobilenet_uncertainty/rightharpoon.png" title="Hand drawn right harpoon symbol"&gt;&lt;/p&gt;
+&lt;img alt="" src="https://hoff97.github.io/blog/images/mobilenet_uncertainty/rightharpoon.png" title="Hand drawn right harpoon symbol"&gt;&lt;/p&gt;
 &lt;p&gt;are shown in the plot below:&lt;/p&gt;
-&lt;p&gt;&lt;img alt="" src="https://haskai.de/images/mobilenet_uncertainty/wrong_softmax.png" title="Softmax of the top-5 classes"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img alt="" src="https://hoff97.github.io/blog/images/mobilenet_uncertainty/wrong_softmax.png" title="Softmax of the top-5 classes"&gt;&lt;/p&gt;
 &lt;p&gt;Since the &lt;span class="math"&gt;\(\rightharpoonup\)&lt;/span&gt; symbol is not in the training dataset, these
 are all wrong of course. Unfortunately, the softmax score for the top class
 is pretty high, so it can not be used as an uncertainty estimate.&lt;/p&gt;
@@ -35,18 +35,18 @@ is pretty high, so it can not be used as an uncertainty estimate.&lt;/p&gt;
 and look at the model predictions. For this we pass the same image
 through the network 100 times and visualize the predictions together with
 their variance:&lt;/p&gt;
-&lt;p&gt;&lt;img alt="" src="https://haskai.de/images/mobilenet_uncertainty/rightharpoonerr.png" title="Softmax of the top-5 classes with error bars"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img alt="" src="https://hoff97.github.io/blog/images/mobilenet_uncertainty/rightharpoonerr.png" title="Softmax of the top-5 classes with error bars"&gt;&lt;/p&gt;
 &lt;p&gt;Here the black bars indicate the standard deviation of the predicted
 softmax values. We can see that using test time dropout induces some variance.&lt;/p&gt;
 &lt;p&gt;If we compare this to the prediction of a symbol that is included in the
 dataset, like the following&lt;/p&gt;
-&lt;p&gt;&lt;img alt="Hand drawn right arrow symbol" src="https://haskai.de/images/mobilenet_uncertainty/rightarrow.png" title="Hand drawn right arrow symbol"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img alt="Hand drawn right arrow symbol" src="https://hoff97.github.io/blog/images/mobilenet_uncertainty/rightarrow.png" title="Hand drawn right arrow symbol"&gt;&lt;/p&gt;
 &lt;p&gt;we can see that this has a lower variance:&lt;/p&gt;
-&lt;p&gt;&lt;img alt="Softmax of the top-5 classes with error bars" src="https://haskai.de/images/mobilenet_uncertainty/rightarrowerr.png" title="Softmax of the top-5 classes with error bars"&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="Softmax of the top-5 classes with error bars" src="https://hoff97.github.io/blog/images/mobilenet_uncertainty/rightarrowerr.png" title="Softmax of the top-5 classes with error bars"&gt;.&lt;/p&gt;
 &lt;p&gt;Lets look at a few more examples. Here are the variances of symbols that are close to the training set:&lt;/p&gt;
-&lt;p&gt;&lt;img alt="" src="https://haskai.de/images/mobilenet_uncertainty/uncertain_good.png" title="Variances of images similar to the training set"&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="" src="https://hoff97.github.io/blog/images/mobilenet_uncertainty/uncertain_good.png" title="Variances of images similar to the training set"&gt;.&lt;/p&gt;
 &lt;p&gt;And here those of pictures that are not found in the training set:&lt;/p&gt;
-&lt;p&gt;&lt;img alt="" src="https://haskai.de/images/mobilenet_uncertainty/uncertain_bad.png" title="Variances of images not similar to the training set"&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="" src="https://hoff97.github.io/blog/images/mobilenet_uncertainty/uncertain_bad.png" title="Variances of images not similar to the training set"&gt;.&lt;/p&gt;
 &lt;p&gt;This is nice, since it allows us to detect when the model is uncertain about its
 predictions. Unfortunately, this approach requires us to make multiple
 forward passes through the model.
@@ -91,7 +91,7 @@ S = softmax(X)\\
 \Sigma^S = J^{softmax}(X) \Sigma^X J^{softmax}(X)^T
 $$&lt;/div&gt;
 &lt;p&gt;Lets compare the variance we get with this estimate to the variance estimated from sampling:&lt;/p&gt;
-&lt;p&gt;&lt;img alt="" src="https://haskai.de/images/mobilenet_uncertainty/variance_comparison.png" title="Comparison of variance estimated from sampling and approximation"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img alt="" src="https://hoff97.github.io/blog/images/mobilenet_uncertainty/variance_comparison.png" title="Comparison of variance estimated from sampling and approximation"&gt;&lt;/p&gt;
 &lt;p&gt;We can see that the approximated variance is not exactly equal to the variance estimated from sampling, but it is generally
 higher for images that are not similar from the training set.&lt;/p&gt;
 &lt;p&gt;This can be used as a rough indicator, when the prediction of MobileNet might not be trusted.&lt;/p&gt;
