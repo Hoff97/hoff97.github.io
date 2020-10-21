@@ -13,7 +13,7 @@ to look up latex symbols I forgot. Unfortunately, mobile data doesnt work very
 well in germany, so when I was traveling a lot of times I could'nt access this page.
 For this reason, I build [Detext](https://detext.haskai.de/client/),
 a progressive web app (PWA), that classifies latex symbols without needing
-a internet connection. It uses [MobileNet](https://arxiv.org/abs/1704.04861),
+a internet connection. It uses MobileNet [@@Howard2017],
 which is run directly on the client side using [onnx.js](https://github.com/microsoft/onnxjs).
 
 ![]({filename}images/mobilenet_uncertainty/detext_example.png "Example of detext predicting the latex code for the alpha character")
@@ -28,8 +28,8 @@ since it does'nt know $\rightharpoonup$ (\rightharpoonup).
 
 Ideally of course, the prediction would include some uncertainty of the network.
 This is known as uncertainty estimation and a variety of approaches exist to
-solve it, for example using model ensembles, predicting a uncertainty or
-using test time dropout.
+solve it, for example using model ensembles [@@Lakshminarayanan2017], predicting a uncertainty [@@Sequ2019] or
+using test time dropout [@@Gal2016].
 
 
 In this article I will focus on test time dropout. Normally, dropout is

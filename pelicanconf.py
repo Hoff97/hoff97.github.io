@@ -29,5 +29,10 @@ DEFAULT_PAGINATION = 10
 
 SUMMARY_MAX_LENGTH = 100
 
+PLUGIN_PATHS = ['deps/']
+PLUGINS = ['render_math', 'pelican-cite']
+
+PUBLICATIONS_SRC = 'content/pubs.bib'
+
 # Uncomment following line if you want document-relative URLs when developing
 #RELATIVE_URLS = True
