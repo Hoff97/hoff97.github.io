@@ -4,7 +4,7 @@ to look up latex symbols I forgot. Unfortunately, mobile data doesnt work very
 well in germany, so when I was traveling a lot of times I could'nt access this page.
 For this reason, I build &lt;a href="https://detext.haskai.de/client/"&gt;Detext&lt;/a&gt;,
 a progressive web app (PWA), that classifies latex symbols without needing
-a internet connection. It uses &lt;a href="https://arxiv.org/abs/1704.04861"&gt;MobileNet&lt;/a&gt;,
+a internet connection. It uses MobileNet [@@Howard2017],
 which is run directly on the client side using &lt;a href="https://github.com/microsoft/onnxjs"&gt;onnx.js&lt;/a&gt;.&lt;/p&gt;
 &lt;p&gt;&lt;img alt="" src="https://hoff97.github.io/images/mobilenet_uncertainty/detext_example.png" title="Example of detext predicting the latex code for the alpha character"&gt;&lt;/p&gt;
 &lt;p&gt;This works pretty well for most symbols. The only pet peeve I had with
@@ -15,8 +15,8 @@ since it does'nt know &lt;span class="math"&gt;\(\rightharpoonup\)&lt;/span&gt; 
 &lt;p&gt;&lt;img alt="" src="https://hoff97.github.io/images/mobilenet_uncertainty/detext_wrong.png" title="Detext predicts \rightarrow since it doesnt know \rightharpoonup"&gt;&lt;/p&gt;
 &lt;p&gt;Ideally of course, the prediction would include some uncertainty of the network.
 This is known as uncertainty estimation and a variety of approaches exist to
-solve it, for example using model ensembles, predicting a uncertainty or
-using test time dropout.&lt;/p&gt;
+solve it, for example using model ensembles [@@Lakshminarayanan2017], predicting a uncertainty [@@Sequ2019] or
+using test time dropout [@@Gal2016].&lt;/p&gt;
 &lt;p&gt;In this article I will focus on test time dropout. Normally, dropout is
 only enabled during training and is used to prevent overfitting.
 To enable the model uncertainty, instead of disabling the dropout layers(s)
