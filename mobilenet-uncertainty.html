@@ -45,7 +45,7 @@ to look up latex symbols I forgot. Unfortunately, mobile data doesnt work very
 well in germany, so when I was traveling a lot of times I could'nt access this page.
 For this reason, I build <a href="https://detext.haskai.de/client/">Detext</a>,
 a progressive web app (PWA), that classifies latex symbols without needing
-a internet connection. It uses MobileNet [@@Howard2017],
+a internet connection. It uses MobileNet <a href='#Howard2017' id='ref-Howard2017-1'>(Howard et al., 2017)</a>,
 which is run directly on the client side using <a href="https://github.com/microsoft/onnxjs">onnx.js</a>.</p>
 <p><img alt="" src="https://hoff97.github.io/images/mobilenet_uncertainty/detext_example.png" title="Example of detext predicting the latex code for the alpha character"></p>
 <p>This works pretty well for most symbols. The only pet peeve I had with
@@ -56,8 +56,8 @@ since it does'nt know <span class="math">\(\rightharpoonup\)</span> (\rightharpo
 <p><img alt="" src="https://hoff97.github.io/images/mobilenet_uncertainty/detext_wrong.png" title="Detext predicts \rightarrow since it doesnt know \rightharpoonup"></p>
 <p>Ideally of course, the prediction would include some uncertainty of the network.
 This is known as uncertainty estimation and a variety of approaches exist to
-solve it, for example using model ensembles [@@Lakshminarayanan2017], predicting a uncertainty [@@Sequ2019] or
-using test time dropout [@@Gal2016].</p>
+solve it, for example using model ensembles <a href='#Lakshminarayanan2017' id='ref-Lakshminarayanan2017-1'>(Lakshminarayanan et al., 2017)</a>, predicting a uncertainty <a href='#Sequ2019' id='ref-Sequ2019-1'>(Segu et al., 2019)</a> or
+using test time dropout <a href='#Gal2016' id='ref-Gal2016-1'>(Gal and Ghahramani, 2016)</a>.</p>
 <p>In this article I will focus on test time dropout. Normally, dropout is
 only enabled during training and is used to prevent overfitting.
 To enable the model uncertainty, instead of disabling the dropout layers(s)
@@ -136,7 +136,7 @@ $$</div>
 <p>We can see that the approximated variance is not exactly equal to the variance estimated from sampling, but it is generally
 higher for images that are not similar from the training set.</p>
 <p>This can be used as a rough indicator, when the prediction of MobileNet might not be trusted.</p>
-<script type="text/javascript">if (!document.getElementById('mathjaxscript_pelican_#%@#$@#')) {
+<script type="text/javascript">if (!document.getElementById('mathjaxscript_pelican_#%&#64;#$&#64;#')) {
     var align = "center",
         indent = "0em",
         linebreak = "false";
@@ -148,7 +148,7 @@ higher for images that are not similar from the training set.</p>
     }
 
     var mathjaxscript = document.createElement('script');
-    mathjaxscript.id = 'mathjaxscript_pelican_#%@#$@#';
+    mathjaxscript.id = 'mathjaxscript_pelican_#%&#64;#$&#64;#';
     mathjaxscript.type = 'text/javascript';
     mathjaxscript.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/latest.js?config=TeX-AMS-MML_HTMLorMML';
 
@@ -197,7 +197,25 @@ higher for images that are not similar from the training set.</p>
     (document.body || document.getElementsByTagName('head')[0]).appendChild(configscript);
     (document.body || document.getElementsByTagName('head')[0]).appendChild(mathjaxscript);
 }
-</script>
+</script><hr>
+<h2>Bibliography</h2>
+<p id='Gal2016'>Yarin Gal and Zoubin Ghahramani.
+Dropout as a bayesian approximation: representing model uncertainty in deep learning.
+In <em>Proceedings of the 33rd International Conference on International Conference on Machine Learning - Volume 48</em>, ICML'16, 1050&ndash;1059. JMLR.org, 2016.
+URL: <a href="https://dl.acm.org/doi/10.5555/3045390.3045502">https://dl.acm.org/doi/10.5555/3045390.3045502</a>. <a class="cite-backref" href="#ref-Gal2016-1" title="Jump back to reference 1">↩</a></p>
+<p id='Howard2017'>Andrew&nbsp;G. Howard, Menglong Zhu, Bo&nbsp;Chen, Dmitry Kalenichenko, Weijun Wang, Tobias Weyand, Marco Andreetto, and Hartwig Adam.
+Mobilenets: efficient convolutional neural networks for mobile vision applications.
+<em>CoRR</em>, 2017.
+URL: <a href="http://arxiv.org/abs/1704.04861">http://arxiv.org/abs/1704.04861</a>, <a href="https://arxiv.org/abs/1704.04861">arXiv:1704.04861</a>. <a class="cite-backref" href="#ref-Howard2017-1" title="Jump back to reference 1">↩</a></p>
+<p id='Lakshminarayanan2017'>Balaji Lakshminarayanan, Alexander Pritzel, and Charles Blundell.
+Simple and scalable predictive uncertainty estimation using deep ensembles.
+In <em>Proceedings of the 31st International Conference on Neural Information Processing Systems</em>, NIPS'17, 6405&ndash;6416. Red Hook, NY, USA, 2017. Curran Associates Inc.
+URL: <a href="https://dl.acm.org/doi/10.5555/3295222.3295387">https://dl.acm.org/doi/10.5555/3295222.3295387</a>. <a class="cite-backref" href="#ref-Lakshminarayanan2017-1" title="Jump back to reference 1">↩</a></p>
+<p id='Sequ2019'>Mattia Seg<span class="bibtex-protected"><span class="bibtex-protected">ù</span></span>, Antonio Loquercio, and Davide Scaramuzza.
+A general framework for uncertainty estimation in deep learning.
+<em>CoRR</em>, 2019.
+URL: <a href="http://arxiv.org/abs/1907.06890">http://arxiv.org/abs/1907.06890</a>, <a href="https://arxiv.org/abs/1907.06890">arXiv:1907.06890</a>. <a class="cite-backref" href="#ref-Sequ2019-1" title="Jump back to reference 1">↩</a></p>
+
     </div><!-- /.entry-content -->
 
   </article>

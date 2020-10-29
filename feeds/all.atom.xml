@@ -4,7 +4,7 @@ to look up latex symbols I forgot. Unfortunately, mobile data doesnt work very
 well in germany, so when I was traveling a lot of times I could'nt access this page.
 For this reason, I build &lt;a href="https://detext.haskai.de/client/"&gt;Detext&lt;/a&gt;,
 a progressive web app (PWA), that classifies latex symbols without needing
-a internet connection. It uses MobileNet [@@Howard2017],
+a internet connection. It uses MobileNet &lt;a href='#Howard2017' id='ref-Howard2017-1'&gt;(Howard et al., 2017)&lt;/a&gt;,
 which is run directly on the client side using &lt;a href="https://github.com/microsoft/onnxjs"&gt;onnx.js&lt;/a&gt;.&lt;/p&gt;
 &lt;p&gt;&lt;img alt="" src="https://hoff97.github.io/images/mobilenet_uncertainty/detext_example.png" title="Example of detext predicting the latex code for the alpha character"&gt;&lt;/p&gt;
 &lt;p&gt;This works pretty well for most symbols. The only pet peeve I had with
@@ -15,8 +15,8 @@ since it does'nt know &lt;span class="math"&gt;\(\rightharpoonup\)&lt;/span&gt; 
 &lt;p&gt;&lt;img alt="" src="https://hoff97.github.io/images/mobilenet_uncertainty/detext_wrong.png" title="Detext predicts \rightarrow since it doesnt know \rightharpoonup"&gt;&lt;/p&gt;
 &lt;p&gt;Ideally of course, the prediction would include some uncertainty of the network.
 This is known as uncertainty estimation and a variety of approaches exist to
-solve it, for example using model ensembles [@@Lakshminarayanan2017], predicting a uncertainty [@@Sequ2019] or
-using test time dropout [@@Gal2016].&lt;/p&gt;
+solve it, for example using model ensembles &lt;a href='#Lakshminarayanan2017' id='ref-Lakshminarayanan2017-1'&gt;(Lakshminarayanan et al., 2017)&lt;/a&gt;, predicting a uncertainty &lt;a href='#Sequ2019' id='ref-Sequ2019-1'&gt;(Segu et al., 2019)&lt;/a&gt; or
+using test time dropout &lt;a href='#Gal2016' id='ref-Gal2016-1'&gt;(Gal and Ghahramani, 2016)&lt;/a&gt;.&lt;/p&gt;
 &lt;p&gt;In this article I will focus on test time dropout. Normally, dropout is
 only enabled during training and is used to prevent overfitting.
 To enable the model uncertainty, instead of disabling the dropout layers(s)
@@ -95,7 +95,7 @@ $$&lt;/div&gt;
 &lt;p&gt;We can see that the approximated variance is not exactly equal to the variance estimated from sampling, but it is generally
 higher for images that are not similar from the training set.&lt;/p&gt;
 &lt;p&gt;This can be used as a rough indicator, when the prediction of MobileNet might not be trusted.&lt;/p&gt;
-&lt;script type="text/javascript"&gt;if (!document.getElementById('mathjaxscript_pelican_#%@#$@#')) {
+&lt;script type="text/javascript"&gt;if (!document.getElementById('mathjaxscript_pelican_#%&amp;#64;#$&amp;#64;#')) {
     var align = "center",
         indent = "0em",
         linebreak = "false";
@@ -107,7 +107,7 @@ higher for images that are not similar from the training set.&lt;/p&gt;
     }
 
     var mathjaxscript = document.createElement('script');
-    mathjaxscript.id = 'mathjaxscript_pelican_#%@#$@#';
+    mathjaxscript.id = 'mathjaxscript_pelican_#%&amp;#64;#$&amp;#64;#';
     mathjaxscript.type = 'text/javascript';
     mathjaxscript.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/latest.js?config=TeX-AMS-MML_HTMLorMML';
 
@@ -156,4 +156,22 @@ higher for images that are not similar from the training set.&lt;/p&gt;
     (document.body || document.getElementsByTagName('head')[0]).appendChild(configscript);
     (document.body || document.getElementsByTagName('head')[0]).appendChild(mathjaxscript);
 }
-&lt;/script&gt;</content><category term="Machine learning"></category><category term="deep-learning"></category><category term="uncertainty-estiamtion"></category></entry></feed>
+&lt;/script&gt;&lt;hr&gt;
+&lt;h2&gt;Bibliography&lt;/h2&gt;
+&lt;p id='Gal2016'&gt;Yarin Gal and Zoubin Ghahramani.
+Dropout as a bayesian approximation: representing model uncertainty in deep learning.
+In &lt;em&gt;Proceedings of the 33rd International Conference on International Conference on Machine Learning - Volume 48&lt;/em&gt;, ICML'16, 1050&amp;ndash;1059. JMLR.org, 2016.
+URL: &lt;a href="https://dl.acm.org/doi/10.5555/3045390.3045502"&gt;https://dl.acm.org/doi/10.5555/3045390.3045502&lt;/a&gt;. &lt;a class="cite-backref" href="#ref-Gal2016-1" title="Jump back to reference 1"&gt;↩&lt;/a&gt;&lt;/p&gt;
+&lt;p id='Howard2017'&gt;Andrew&amp;nbsp;G. Howard, Menglong Zhu, Bo&amp;nbsp;Chen, Dmitry Kalenichenko, Weijun Wang, Tobias Weyand, Marco Andreetto, and Hartwig Adam.
+Mobilenets: efficient convolutional neural networks for mobile vision applications.
+&lt;em&gt;CoRR&lt;/em&gt;, 2017.
+URL: &lt;a href="http://arxiv.org/abs/1704.04861"&gt;http://arxiv.org/abs/1704.04861&lt;/a&gt;, &lt;a href="https://arxiv.org/abs/1704.04861"&gt;arXiv:1704.04861&lt;/a&gt;. &lt;a class="cite-backref" href="#ref-Howard2017-1" title="Jump back to reference 1"&gt;↩&lt;/a&gt;&lt;/p&gt;
+&lt;p id='Lakshminarayanan2017'&gt;Balaji Lakshminarayanan, Alexander Pritzel, and Charles Blundell.
+Simple and scalable predictive uncertainty estimation using deep ensembles.
+In &lt;em&gt;Proceedings of the 31st International Conference on Neural Information Processing Systems&lt;/em&gt;, NIPS'17, 6405&amp;ndash;6416. Red Hook, NY, USA, 2017. Curran Associates Inc.
+URL: &lt;a href="https://dl.acm.org/doi/10.5555/3295222.3295387"&gt;https://dl.acm.org/doi/10.5555/3295222.3295387&lt;/a&gt;. &lt;a class="cite-backref" href="#ref-Lakshminarayanan2017-1" title="Jump back to reference 1"&gt;↩&lt;/a&gt;&lt;/p&gt;
+&lt;p id='Sequ2019'&gt;Mattia Seg&lt;span class="bibtex-protected"&gt;&lt;span class="bibtex-protected"&gt;ù&lt;/span&gt;&lt;/span&gt;, Antonio Loquercio, and Davide Scaramuzza.
+A general framework for uncertainty estimation in deep learning.
+&lt;em&gt;CoRR&lt;/em&gt;, 2019.
+URL: &lt;a href="http://arxiv.org/abs/1907.06890"&gt;http://arxiv.org/abs/1907.06890&lt;/a&gt;, &lt;a href="https://arxiv.org/abs/1907.06890"&gt;arXiv:1907.06890&lt;/a&gt;. &lt;a class="cite-backref" href="#ref-Sequ2019-1" title="Jump back to reference 1"&gt;↩&lt;/a&gt;&lt;/p&gt;
+</content><category term="Machine learning"></category><category term="deep-learning"></category><category term="uncertainty-estiamtion"></category></entry></feed>
