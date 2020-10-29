@@ -105,7 +105,7 @@ of an image is
 <div class="math">$$ pred = softmax(W \times dropout(f(image)) $$</div>
 <p>The feature of an image will thus always be the same, even with test time dropout
 enabled. We can use a few simple tricks to estimate the variance.</p>
-<p>The covariance matrix of <span class="math">\(F = dropout(f(image))\)</span> is simply a diagonal matrix
+<p>The covariance matrix <span class="math">\(\Sigma^F\)</span> of <span class="math">\(F = dropout(f(image))\)</span> is simply a diagonal matrix
 with <span class="math">\(\Sigma^F_{ii} = p/(1-p)*f(image)_i^2\)</span> (its just a bernoully random vector
 multiplied by <span class="math">\(f(image)/(1-p)\)</span> ).</p>
 <p>We get the covariance after the linear layer by using the fact that
