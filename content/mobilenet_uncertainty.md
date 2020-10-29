@@ -97,7 +97,7 @@ $$ pred = softmax(W \times dropout(f(image)) $$
 The feature of an image will thus always be the same, even with test time dropout
 enabled. We can use a few simple tricks to estimate the variance.
 
-The covariance matrix of $F = dropout(f(image))$ is simply a diagonal matrix
+The covariance matrix $\Sigma^F$ of $F = dropout(f(image))$ is simply a diagonal matrix
 with $\Sigma^F_{ii} = p/(1-p)*f(image)_i^2$ (its just a bernoully random vector
 multiplied by $f(image)/(1-p)$ ).
 
