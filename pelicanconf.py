@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*- #
 
 AUTHOR = 'Frithjof Winkelmann'
-SITENAME = 'haskai'
 SITEURL = ''
 
 PATH = 'content'
@@ -19,11 +18,11 @@ AUTHOR_FEED_ATOM = None
 AUTHOR_FEED_RSS = None
 
 # Blogroll
-LINKS = (('Pelican', 'https://getpelican.com/'),)
+LINKS = ()
 
 # Social widget
-SOCIAL = (('Github', 'https://github.com/Hoff97'),
-          ('LinkedIn', 'https://www.linkedin.com/in/frithjof-winkelmann-338a99a8/'),)
+SOCIAL = (('github', 'https://github.com/Hoff97'),
+          ('linkedin', 'https://www.linkedin.com/in/frithjof-winkelmann-338a99a8/'),)
 
 DEFAULT_PAGINATION = 10
 
@@ -34,5 +33,29 @@ PLUGINS = ['render_math', 'pelican-cite']
 
 PUBLICATIONS_SRC = 'content/pubs.bib'
 
-# Uncomment following line if you want document-relative URLs when developing
-#RELATIVE_URLS = True
+THEME = 'deps/Flex'
+
+## Flex
+
+SITENAME = "haskai"
+SITETITLE = "Frithjof Winkelmann"
+SITESUBTITLE = "Software Developer"
+SITEDESCRIPTION = "Foo Bar's Thoughts and Writings"
+SITELOGO = SITEURL + "/images/profile.png"
+FAVICON = SITEURL + "/images/favicon.ico"
+
+BROWSER_COLOR = "#333"
+ROBOTS = "index, follow"
+
+CC_LICENSE = {
+    "name": "Creative Commons Attribution-ShareAlike",
+    "version": "4.0",
+    "slug": "by-sa"
+}
+
+COPYRIGHT_YEAR = 2020
+
+MAIN_MENU = True
+MENUITEMS = (("Categories", "/categories"), ("Tags", "/tags"),)
+
+ADD_THIS_ID = "ra-77hh6723hhjd"
