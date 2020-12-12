@@ -1,2 +1,0 @@
-pelican==4.5.0
-pelican-render-math==1.0.3
