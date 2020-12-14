@@ -139,3 +139,7 @@ We can see that the approximated variance is not exactly equal to the variance e
 higher for images that are not similar from the training set.
 
 This can be used as a rough indicator, when the prediction of MobileNet might not be trusted.
+
+In the [Detext](https://detext.haskai.de/client/) app this looks like this:
+
+![]({filename}images/mobilenet_uncertainty/detext_uncertain.png "Example of uncertainty estimate in detext").
