@@ -20,6 +20,9 @@ The requirements that I had for this library specifically where:&lt;/p&gt;
   typically need could be done as fast as executing the model itself.&lt;/li&gt;
 &lt;li&gt;A "high level" interface for executing models stored in the ONNX format.&lt;/li&gt;
 &lt;/ul&gt;
+&lt;p&gt;In this article I want to go over some of the development challenges that I encountered when
+I wrote this library. You can find it on &lt;a href="https://github.com/Hoff97/tensorjs"&gt;Github&lt;/a&gt;
+and install it from &lt;a href="https://www.npmjs.com/package/@hoff97/tensor-js"&gt;NPM&lt;/a&gt;.&lt;/p&gt;
 &lt;h1&gt;Tensors and how they are layed out in memory&lt;/h1&gt;
 &lt;p&gt;Deep learning frameworks are centered around the concept of a tensor - which to us computer programmers is
 basically a multidimensional array. Consider a multi dimensional array/tensor like the following one:&lt;/p&gt;
