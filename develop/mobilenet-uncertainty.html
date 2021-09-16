@@ -10,19 +10,19 @@
 
   <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,400;0,700;1,400&family=Source+Sans+Pro:ital,wght@0,300;0,400;0,700;1,400&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" type="text/css" href="https://hoff97.github.io/theme/stylesheet/style.min.css">
+    <link rel="stylesheet" type="text/css" href="https://hoff97.github.io/develop/theme/stylesheet/style.min.css">
 
 
     <link id="pygments-light-theme" rel="stylesheet" type="text/css"
-          href="https://hoff97.github.io/theme/pygments/github.min.css">
+          href="https://hoff97.github.io/develop/theme/pygments/github.min.css">
 
 
-  <link rel="stylesheet" type="text/css" href="https://hoff97.github.io/theme/font-awesome/css/fontawesome.css">
-  <link rel="stylesheet" type="text/css" href="https://hoff97.github.io/theme/font-awesome/css/brands.css">
-  <link rel="stylesheet" type="text/css" href="https://hoff97.github.io/theme/font-awesome/css/solid.css">
+  <link rel="stylesheet" type="text/css" href="https://hoff97.github.io/develop/theme/font-awesome/css/fontawesome.css">
+  <link rel="stylesheet" type="text/css" href="https://hoff97.github.io/develop/theme/font-awesome/css/brands.css">
+  <link rel="stylesheet" type="text/css" href="https://hoff97.github.io/develop/theme/font-awesome/css/solid.css">
 
 
-    <link href="https://hoff97.github.io/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="haskai Atom">
+    <link href="https://hoff97.github.io/develop/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="haskai Atom">
 
 
     <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon">
@@ -51,11 +51,11 @@
   <meta property="og:title" content="Fast uncertainty estimation for mobilenet."/>
   <meta property="og:description" content="Here I explore how uncertainty estimation can be done very quickly with mobilenet"/>
   <meta property="og:locale" content="en_US"/>
-  <meta property="og:url" content="https://hoff97.github.io/mobilenet-uncertainty.html"/>
+  <meta property="og:url" content="https://hoff97.github.io/develop/mobilenet-uncertainty.html"/>
   <meta property="og:type" content="article"/>
   <meta property="article:published_time" content="2020-08-31 16:25:00+02:00"/>
   <meta property="article:modified_time" content="2020-08-31 16:25:00+02:00"/>
-  <meta property="article:author" content="https://hoff97.github.io/author/frithjof-winkelmann.html">
+  <meta property="article:author" content="https://hoff97.github.io/develop/author/frithjof-winkelmann.html">
   <meta property="article:section" content="Machine learning"/>
   <meta property="article:tag" content="deep-learning"/>
   <meta property="article:tag" content="uncertainty-estiamtion"/>
@@ -67,12 +67,12 @@
 <body class="light-theme">
   <aside>
     <div>
-      <a href="https://hoff97.github.io/">
+      <a href="https://hoff97.github.io/develop/">
         <img src="/images/profile.png" alt="Frithjof Winkelmann" title="Frithjof Winkelmann">
       </a>
 
       <h1>
-        <a href="https://hoff97.github.io/">Frithjof Winkelmann</a>
+        <a href="https://hoff97.github.io/develop/">Frithjof Winkelmann</a>
       </h1>
 
 <p>Software Developer</p>
@@ -83,7 +83,7 @@
 
               <li>
                 <a target="_self"
-                   href="https://hoff97.github.io/pages/about.html#about">
+                   href="https://hoff97.github.io/develop/pages/about.html#about">
                   About
                 </a>
               </li>
@@ -109,12 +109,12 @@
   <main>
 
     <nav>
-      <a href="https://hoff97.github.io/">Home</a>
+      <a href="https://hoff97.github.io/develop/">Home</a>
 
       <a href="/categories">Categories</a>
       <a href="/tags">Tags</a>
 
-      <a href="https://hoff97.github.io/feeds/all.atom.xml">Atom</a>
+      <a href="https://hoff97.github.io/develop/feeds/all.atom.xml">Atom</a>
 
     </nav>
 
@@ -123,7 +123,7 @@
       
     <h1 id="mobilenet-uncertainty">Fast uncertainty estimation for mobilenet.</h1>
     <p>
-      Posted on Mon 31 August 2020 in <a href="https://hoff97.github.io/category/machine-learning.html">Machine learning</a>
+      Posted on Mon 31 August 2020 in <a href="https://hoff97.github.io/develop/category/machine-learning.html">Machine learning</a>
 
     </p>
   </header>
@@ -137,13 +137,13 @@ For this reason, I build <a href="https://detext.haskai.de/client/">Detext</a>,
 a progressive web app (PWA), that classifies latex symbols without needing
 a internet connection. It uses MobileNet <a href='#Howard2017' id='ref-Howard2017-1'>(Howard et al., 2017)</a>,
 which is run directly on the client side using <a href="https://github.com/microsoft/onnxjs">onnx.js</a>.</p>
-<p><img alt="" src="https://hoff97.github.io/images/mobilenet_uncertainty/detext_example.png" title="Example of detext predicting the latex code for the alpha character"></p>
+<p><img alt="" src="https://hoff97.github.io/develop/images/mobilenet_uncertainty/detext_example.png" title="Example of detext predicting the latex code for the alpha character"></p>
 <p>This works pretty well for most symbols. The only pet peeve I had with
 it until recently was, that it wont tell you when its not
 certain about the predicted symbol or simply predicts the wrong symbol.
 In the following example, the app predicts the <span class="math">\(\rightarrow\)</span> (\rightarrow) symbol,
 since it does'nt know <span class="math">\(\rightharpoonup\)</span> (\rightharpoonup).</p>
-<p><img alt="" src="https://hoff97.github.io/images/mobilenet_uncertainty/detext_wrong.png" title="Detext predicts \rightarrow since it doesnt know \rightharpoonup"></p>
+<p><img alt="" src="https://hoff97.github.io/develop/images/mobilenet_uncertainty/detext_wrong.png" title="Detext predicts \rightarrow since it doesnt know \rightharpoonup"></p>
 <p>Ideally of course, the prediction would include some uncertainty of the network.
 This is known as uncertainty estimation and a variety of approaches exist to
 solve it, for example using model ensembles <a href='#Lakshminarayanan2017' id='ref-Lakshminarayanan2017-1'>(Lakshminarayanan et al., 2017)</a>, predicting a uncertainty <a href='#Sequ2019' id='ref-Sequ2019-1'>(Segu et al., 2019)</a> or
@@ -156,9 +156,9 @@ to a network with test time dropout will then give different outputs,
 depending on which neurons stay enabled.</p>
 <p>Lets look at an example. The top-5 softmax values that mobilenet predicts
 for the following picture
-<img alt="" src="https://hoff97.github.io/images/mobilenet_uncertainty/rightharpoon.png" title="Hand drawn right harpoon symbol"></p>
+<img alt="" src="https://hoff97.github.io/develop/images/mobilenet_uncertainty/rightharpoon.png" title="Hand drawn right harpoon symbol"></p>
 <p>are shown in the plot below:</p>
-<p><img alt="" src="https://hoff97.github.io/images/mobilenet_uncertainty/wrong_softmax.png" title="Softmax of the top-5 classes"></p>
+<p><img alt="" src="https://hoff97.github.io/develop/images/mobilenet_uncertainty/wrong_softmax.png" title="Softmax of the top-5 classes"></p>
 <p>Since the <span class="math">\(\rightharpoonup\)</span> symbol is not in the training dataset, these
 are all wrong of course. Unfortunately, the softmax score for the top class
 is pretty high, so it can not be used as an uncertainty estimate.</p>
@@ -166,18 +166,18 @@ is pretty high, so it can not be used as an uncertainty estimate.</p>
 and look at the model predictions. For this we pass the same image
 through the network 100 times and visualize the predictions together with
 their variance:</p>
-<p><img alt="" src="https://hoff97.github.io/images/mobilenet_uncertainty/rightharpoonerr.png" title="Softmax of the top-5 classes with error bars"></p>
+<p><img alt="" src="https://hoff97.github.io/develop/images/mobilenet_uncertainty/rightharpoonerr.png" title="Softmax of the top-5 classes with error bars"></p>
 <p>Here the black bars indicate the standard deviation of the predicted
 softmax values. We can see that using test time dropout induces some variance.</p>
 <p>If we compare this to the prediction of a symbol that is included in the
 dataset, like the following</p>
-<p><img alt="Hand drawn right arrow symbol" src="https://hoff97.github.io/images/mobilenet_uncertainty/rightarrow.png" title="Hand drawn right arrow symbol"></p>
+<p><img alt="Hand drawn right arrow symbol" src="https://hoff97.github.io/develop/images/mobilenet_uncertainty/rightarrow.png" title="Hand drawn right arrow symbol"></p>
 <p>we can see that this has a lower variance:</p>
-<p><img alt="Softmax of the top-5 classes with error bars" src="https://hoff97.github.io/images/mobilenet_uncertainty/rightarrowerr.png" title="Softmax of the top-5 classes with error bars">.</p>
+<p><img alt="Softmax of the top-5 classes with error bars" src="https://hoff97.github.io/develop/images/mobilenet_uncertainty/rightarrowerr.png" title="Softmax of the top-5 classes with error bars">.</p>
 <p>Lets look at a few more examples. Here are the variances of symbols that are close to the training set:</p>
-<p><img alt="" src="https://hoff97.github.io/images/mobilenet_uncertainty/uncertain_good.png" title="Variances of images similar to the training set">.</p>
+<p><img alt="" src="https://hoff97.github.io/develop/images/mobilenet_uncertainty/uncertain_good.png" title="Variances of images similar to the training set">.</p>
 <p>And here those of pictures that are not found in the training set:</p>
-<p><img alt="" src="https://hoff97.github.io/images/mobilenet_uncertainty/uncertain_bad.png" title="Variances of images not similar to the training set">.</p>
+<p><img alt="" src="https://hoff97.github.io/develop/images/mobilenet_uncertainty/uncertain_bad.png" title="Variances of images not similar to the training set">.</p>
 <p>This is nice, since it allows us to detect when the model is uncertain about its
 predictions. Unfortunately, this approach requires us to make multiple
 forward passes through the model.
@@ -222,12 +222,12 @@ S = softmax(X)\\
 \Sigma^S = J^{softmax}(X) \Sigma^X J^{softmax}(X)^T
 $$</div>
 <p>Lets compare the variance we get with this estimate to the variance estimated from sampling:</p>
-<p><img alt="" src="https://hoff97.github.io/images/mobilenet_uncertainty/variance_comparison.png" title="Comparison of variance estimated from sampling and approximation"></p>
+<p><img alt="" src="https://hoff97.github.io/develop/images/mobilenet_uncertainty/variance_comparison.png" title="Comparison of variance estimated from sampling and approximation"></p>
 <p>We can see that the approximated variance is not exactly equal to the variance estimated from sampling, but it is generally
 higher for images that are not similar from the training set.</p>
 <p>This can be used as a rough indicator, when the prediction of MobileNet might not be trusted.</p>
 <p>In the <a href="https://detext.haskai.de/client/">Detext</a> app this looks like this:</p>
-<p><img alt="" src="https://hoff97.github.io/images/mobilenet_uncertainty/detext_uncertain.png" title="Example of uncertainty estimate in detext">.</p>
+<p><img alt="" src="https://hoff97.github.io/develop/images/mobilenet_uncertainty/detext_uncertain.png" title="Example of uncertainty estimate in detext">.</p>
 <script type="text/javascript">if (!document.getElementById('mathjaxscript_pelican_#%&#64;#$&#64;#')) {
     var align = "center",
         indent = "0em",
@@ -311,8 +311,8 @@ URL: <a href="http://arxiv.org/abs/1907.06890">http://arxiv.org/abs/1907.06890</
   </div>
   <div class="tag-cloud">
     <p>
-      <a href="https://hoff97.github.io/tag/deep-learning.html">deep-learning</a>
-      <a href="https://hoff97.github.io/tag/uncertainty-estiamtion.html">uncertainty-estiamtion</a>
+      <a href="https://hoff97.github.io/develop/tag/deep-learning.html">deep-learning</a>
+      <a href="https://hoff97.github.io/develop/tag/uncertainty-estiamtion.html">uncertainty-estiamtion</a>
     </p>
   </div>
 
@@ -358,7 +358,7 @@ Built with <a href="http://getpelican.com" target="_blank">Pelican</a> using <a 
   "@context" : "http://schema.org",
   "@type" : "Blog",
   "name": " haskai ",
-  "url" : "https://hoff97.github.io",
+  "url" : "https://hoff97.github.io/develop",
   "image": "/images/profile.png",
   "description": "Foo Bar's Thoughts and Writings"
 }
