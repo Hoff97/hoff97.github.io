@@ -29,6 +29,10 @@ The requirements that I had for this library specifically where:
   typically need could be done as fast as executing the model itself.
 - A "high level" interface for executing models stored in the ONNX format.
 
+In this article I want to go over some of the development challenges that I encountered when
+I wrote this library. You can find it on [Github](https://github.com/Hoff97/tensorjs)
+and install it from [NPM](https://www.npmjs.com/package/@hoff97/tensor-js).
+
 # Tensors and how they are layed out in memory
 
 Deep learning frameworks are centered around the concept of a tensor - which to us computer programmers is
