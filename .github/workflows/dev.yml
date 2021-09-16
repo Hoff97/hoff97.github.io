@@ -30,7 +30,7 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Build static site
       run: |
-        pelican content -s publishconf.py
+        pelican content -s devconf.py
     - name: Deploy 🚀
       uses: JamesIves/github-pages-deploy-action@3.7.1
       with:
