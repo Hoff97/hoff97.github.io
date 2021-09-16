@@ -1,0 +1,943 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index, follow" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,400;0,700;1,400&family=Source+Sans+Pro:ital,wght@0,300;0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" type="text/css" href="https://hoff97.github.io/theme/stylesheet/style.min.css">
+
+
+    <link id="pygments-light-theme" rel="stylesheet" type="text/css"
+          href="https://hoff97.github.io/theme/pygments/github.min.css">
+
+
+  <link rel="stylesheet" type="text/css" href="https://hoff97.github.io/theme/font-awesome/css/fontawesome.css">
+  <link rel="stylesheet" type="text/css" href="https://hoff97.github.io/theme/font-awesome/css/brands.css">
+  <link rel="stylesheet" type="text/css" href="https://hoff97.github.io/theme/font-awesome/css/solid.css">
+
+
+    <link href="https://hoff97.github.io/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="haskai Atom">
+
+
+    <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/images/favicon.ico" type="image/x-icon">
+
+  
+
+    <!-- Chrome, Firefox OS and Opera -->
+    <meta name="theme-color" content="#333">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#333">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Microsoft EDGE -->
+    <meta name="msapplication-TileColor" content="#333">
+
+ 
+
+<meta name="author" content="Frithjof Winkelmann" />
+<meta name="description" content="Paper analysis of &#34;Learning Multi-view Camera Relocalization with Graph Neural Networks&#34;" />
+<meta name="keywords" content="deep-learning, computer-vision">
+
+
+  <meta property="og:site_name" content="haskai"/>
+  <meta property="og:title" content="Learning Multi-view Camera Relocalization with Graph Neural Networks"/>
+  <meta property="og:description" content="Paper analysis of &#34;Learning Multi-view Camera Relocalization with Graph Neural Networks&#34;"/>
+  <meta property="og:locale" content="en_US"/>
+  <meta property="og:url" content="https://hoff97.github.io/multi-view-reloc.html"/>
+  <meta property="og:type" content="article"/>
+  <meta property="article:published_time" content="2021-01-13 13:00:00+01:00"/>
+  <meta property="article:modified_time" content="2021-01-13 13:00:00+01:00"/>
+  <meta property="article:author" content="https://hoff97.github.io/author/frithjof-winkelmann.html">
+  <meta property="article:section" content="Machine learning"/>
+  <meta property="article:tag" content="deep-learning"/>
+  <meta property="article:tag" content="computer-vision"/>
+  <meta property="og:image" content="/images/profile.png">
+
+  <title>haskai &ndash; Learning Multi-view Camera Relocalization with Graph Neural Networks</title>
+
+</head>
+<body class="light-theme">
+  <aside>
+    <div>
+      <a href="https://hoff97.github.io/">
+        <img src="/images/profile.png" alt="Frithjof Winkelmann" title="Frithjof Winkelmann">
+      </a>
+
+      <h1>
+        <a href="https://hoff97.github.io/">Frithjof Winkelmann</a>
+      </h1>
+
+<p>Software Developer</p>
+
+      <nav>
+        <ul class="list">
+
+
+              <li>
+                <a target="_self"
+                   href="https://hoff97.github.io/pages/about.html#about">
+                  About
+                </a>
+              </li>
+
+        </ul>
+      </nav>
+
+      <ul class="social">
+          <li>
+            <a  class="sc-github" href="https://github.com/Hoff97" target="_blank">
+              <i class="fab fa-github"></i>
+            </a>
+          </li>
+          <li>
+            <a  class="sc-linkedin" href="https://www.linkedin.com/in/frithjof-winkelmann-338a99a8/" target="_blank">
+              <i class="fab fa-linkedin"></i>
+            </a>
+          </li>
+      </ul>
+    </div>
+
+  </aside>
+  <main>
+
+    <nav>
+      <a href="https://hoff97.github.io/">Home</a>
+
+      <a href="/categories">Categories</a>
+      <a href="/tags">Tags</a>
+
+      <a href="https://hoff97.github.io/feeds/all.atom.xml">Atom</a>
+
+    </nav>
+
+<article class="single">
+  <header>
+      
+    <h1 id="multi-view-reloc">Learning Multi-view Camera Relocalization with Graph Neural Networks</h1>
+    <p>
+      Posted on Wed 13 January 2021 in <a href="https://hoff97.github.io/category/machine-learning.html">Machine learning</a>
+
+    </p>
+  </header>
+
+
+  <div>
+    <p><link rel="stylesheet"  href="{filename}../style.css"></p>
+<p>This blog post will review the paper
+<a href="https://openaccess.thecvf.com/content_CVPR_2020/html/Xue_Learning_Multi-View_Camera_Relocalization_With_Graph_Neural_Networks_CVPR_2020_paper.html">Learning Multi-view Camera Relocalization with Graph Neural Networks</a>
+presented at CVPR 2020. I will cover related literature,
+explain the methodology and offer my own view at the end.</p>
+<p>Note: This blog post has several expandable sections. They are not required
+for understanding the paper, but contain further information for
+the interested reader.</p>
+<h2>Terminology</h2>
+<p>This section clarifies a few concepts that are needed to
+understand camera re-localization. If you are already experienced
+in computer vision you can probably skip it.</p>
+<p><hr style="border-top: 1px solid #BBB; margin: 5px;"/>
+<details>
+  <summary>Poses</summary></p>
+<p>A pose describes the position and orientation of
+  an object in 3D space. It consists of a translational
+  component <span class="math">\(\vec{t} \in \mathbb{R}^3\)</span> and a orientational
+  component, often represented as a quaternion <span class="math">\(q \in \mathbb{H}\)</span>.</p>
+<p>A 3D pose can also be described by a matrix
+  </p>
+<div class="math">$$
+  p \in \mathbb{R}^{4 \times 4} = \begin{pmatrix} R &amp; \vec{t} \\ \vec{0} &amp; 1\end{pmatrix}
+  $$</div>
+<p>
+  where <span class="math">\(R \in \mathbb{R}^{3 \times 3}\)</span> is a rotation matrix (so <span class="math">\(det\ R = 1\)</span>)
+  and <span class="math">\(\vec{t}\)</span> is the translation vector.</p>
+<p>The set of all possible matrices representing a valid pose in
+  3D is often written <span class="math">\(SE(3)\)</span>.</p>
+<p>These matrices act on vectors in homogeneous coordinates, where we write
+  a position in 3D space <span class="math">\(x \in \mathbb{R}^3\)</span> as a 4 dimensional vector
+  </p>
+<div class="math">$$
+  \bar{x} = \begin{pmatrix}
+    x_1 \\ x_2 \\ x_3 \\ 1
+  \end{pmatrix}
+  $$</div>
+<p>
+  This allows the translation to be expressed in the matrix as well (while
+  in non-homogeneous coordinates it can not be expressed in a matrix since it is not linear).</p>
+<p></details>
+<hr style="border-top: 1px solid #BBB; margin: 5px;"/></p>
+<h2>Camera Re-localization</h2>
+<p>Camera re-localization is the of task finding your position
+in a known environment only by observation through pictures.
+Humans do this constantly - when you get out of the subway
+and want to find the exit thats closest to your destination
+or when you make your daily way to work from memory.</p>
+<p>This is also a fundamental step in many computer vision tasks.
+To be more specific, camera re-localization is the task
+of finding the absolute pose <span class="math">\(p_q \in SE(3)\)</span> of a query image
+<span class="math">\(i_q \in \mathbb{R}^{3 \times W \times H}\)</span> (with width <span class="math">\(W\)</span> and
+height <span class="math">\(H\)</span>) given a <strong>database</strong> of images <span class="math">\(I = \{i_1, ..., i_n\}\)</span>
+of which the poses <span class="math">\(P = \{p_1,...,p_n\}\)</span> are already known.</p>
+<p><img alt="Example of camera relocalization" src="{filename}/../images/multi_view_reloc/kings_position_localized.png"></p>
+<p>This can be seen in the above image. Given the positions of the 3
+images at the top, we re-localize the image at the bottom at
+the red camera position.</p>
+<p><hr style="border-top: 1px solid #BBB; margin: 5px;"/>
+<details>
+  <summary>Applications</summary></p>
+<p>Where is this actually needed? As mentioned above, this
+  is an important step in many computer vision pipelines,
+  such as
+  - Structure from Motion (SfM)
+  - Simultaneous Localization and Mapping (SLAM)</p>
+<p>In structure from motion, a 3D model of the environment is recovered given
+  only a sequence of images. This works in 4 steps:</p>
+<ol>
+<li><strong>Initialization:</strong> 2 images are used to initialize the scene, by finding
+     the relative pose of their cameras and detecting important keypoints in
+     both images.</li>
+<li><strong>Camera localization:</strong> A new image is added to the scene using the
+     previously located cameras and their keypoints. This can be viewed as
+     a camera relocalization problem.</li>
+<li><strong>Keypoint localization:</strong> New keypoints from the just added image
+     are localized in the scene.</li>
+<li><strong>Bundle adjustment:</strong> The previous steps often include small errors that
+     would accumulate over time. Bundle adjustment minimizes those errors.
+     After that the algorithm proceeds with step 2.</li>
+</ol>
+<p>Simultaneous Localization and Mapping can be viewed as SfM in the real time
+  setting on a robot. This prohibits the usage of a bundle adjustment on the whole
+  scene, since this would typically take too long. Instead only certain
+  keyframes are saved. To still allow correcting accumulated errors,
+  SLAM algorithms try to detect loop closures, where the robot returns to
+  the same location. This can also be viewed as a camera relocalization
+  problem.</p>
+<p></details>
+<hr style="border-top: 1px solid #BBB; margin: 5px;"/></p>
+<h2>Classical approaches</h2>
+<p>Given that this is part of long standing problems in
+computer vision, there are of course many approaches
+to solving this without deep learning.</p>
+<p>One common pipeline for this is divided into 3 steps:</p>
+<h3>1. Compute image keypoints of the query image</h3>
+<p>An example of the first step can be seen in the following picture.</p>
+<p><img alt="ORB keypoints on a example query image" src="{filename}/../images/multi_view_reloc/orb.png"></p>
+<p>Image keypoints are interesting points in the image, such as
+edges or corners. For each keypoint typically a
+keypoint descriptor is computed - a feature that uniquely
+describes the keypoint. There are many methods for doing this,
+for example SIFT, SURF <a href='#10.1007/978-3-642-15561-1_56' id='ref-10.1007/978-3-642-15561-1_56-1'>(Calonder et al., 2010)</a> or ORB <a href='#6126544' id='ref-6126544-1'>(Rublee et al., 2011)</a>.</p>
+<h3>2. Find similar images in the image database</h3>
+<p>The keypoints and their descriptors are combined
+into an overall image descriptor - which often is a vector
+<span class="math">\(d \in \mathbb{R}^D\)</span>. This vector can be compared to the
+image descriptor of images from the database. Images from similar
+locations will have a similar vector and can thus be found
+by nearest neighbor search.</p>
+<p>Approaches for computing image descriptors include Bag of Words <a href='#GalvezLopez2012' id='ref-GalvezLopez2012-1'>(GalvezLópez and Tardos, 2012)</a>
+ and Gist features <a href='#Oliva2006BuildingTG' id='ref-Oliva2006BuildingTG-1'>(Oliva and Torralba, 2006)</a>.</p>
+<h3>3. Estimate the relative pose given one or many similar images from the database</h3>
+<p>When we have found on ore more similar images <span class="math">\(i_d\)</span> in the image
+database, we can use their already known poses <span class="math">\(p_d\)</span> to estimate
+the pose of the query image.</p>
+<p>For this we can use the keypoints from step 1, by computing
+keypoint correspondences, like in the following picture.</p>
+<p><img alt="ORB keypoints on a example query image" src="{filename}/../images/multi_view_reloc/orb_matched.png"></p>
+<p>These keypoint correspondences can then be used to estimate the
+relative pose between the database image <span class="math">\(i_d\)</span> and the query image
+<span class="math">\(i_q\)</span>, for example with the 5-point algorithm <a href='#1288525' id='ref-1288525-1'>(Nister, 2004)</a>.</p>
+<h3>From classical to deep learning approaches</h3>
+<p>These steps are quite complex. Moreover many of these
+approaches have difficulties with changing
+illuminations and weather conditions, are quite
+memory intensive and slow and require intrinsic calibration
+to work right. This is why there is research
+interest in replacing them with "simpler" deep learning approaches.</p>
+<h2>Deep learning approaches</h2>
+<p>Deep learning approaches for camera re-localization broadly
+fall into two categories:</p>
+<ul>
+<li>Approaches replacing step 1 and 2. These use a deep convolutional network to
+  compute a feature vector for the query image that can be used to
+  find similar images in the camera database. On example for this
+  is NetVLAD <a href='#DBLP:journals/corr/ArandjelovicGTP15' id='ref-DBLP:journals/corr/ArandjelovicGTP15-1'>(Arandjelovic et al., 2015)</a>.</li>
+<li>Approaches replacing all three steps with a deep neural network.
+  They take one or multiple query images, pass them through a
+  network and output a global pose for each of them. Since the
+  network is optimized on the predicted poses this is called
+  <strong>abolute pose regression</strong>. The paper that sparked of this
+  line of research is called PoseNet <a href='#kendall2015convolutional' id='ref-kendall2015convolutional-1'>(Kendall et al., 2015)</a>.</li>
+</ul>
+<h3>PoseNet</h3>
+<p>PoseNet is a deep convolutional network, namely GoogLeNet <a href='#DBLP:journals/corr/SzegedyLJSRAEVR14' id='ref-DBLP:journals/corr/SzegedyLJSRAEVR14-1'>(Szegedy et al., 2014)</a>, trained
+on predicting a single pose <span class="math">\(p_q\)</span> for an input query image <span class="math">\(i_q\)</span>.
+It is trained on scenes of the 7Scenes <a href='#glocker2013real-time' id='ref-glocker2013real-time-1'>(Glocker et al., 2013)</a> and
+Cambridge Landmarks <a href='#kendall2015convolutional' id='ref-kendall2015convolutional-2'>(Kendall et al., 2015)</a> datasets. Each scene
+contains one or multiple training and testing sequences.
+It is important to mention that PoseNet, like <strong>all</strong> absolute
+pose regression approaches, works for a single scene only
+and has to be retrained from scratch to work on other scenes.</p>
+<p>While PoseNet archieves "only" average accuracy (around 2m, 6°
+accuracy), it runs very fast at ~5ms per picture, which is quite
+impressive.</p>
+<p>There are several improvements to PoseNet, which include MapNet <a href='#DBLP:journals/corr/abs-1712-03342' id='ref-DBLP:journals/corr/abs-1712-03342-1'>(Brahmbhatt et al., 2017)</a>,
+VidLoc <a href='#DBLP:journals/corr/ClarkWMTW17' id='ref-DBLP:journals/corr/ClarkWMTW17-1'>(Clark et al., 2017)</a> and VlocNet <a href='#DBLP:journals/corr/abs-1803-03642' id='ref-DBLP:journals/corr/abs-1803-03642-1'>(Valada et al., 2018)</a> <a href='#DBLP:journals/corr/abs-1804-08366' id='ref-DBLP:journals/corr/abs-1804-08366-1'>(Radwan et al., 2018)</a>.</p>
+<h3>VidLoc</h3>
+<p>The basic idea of VidLoc is to not re-localize single images
+but instead a whole image sequence <span class="math">\(i_1,...,i_n\)</span> (a video - hence the name)
+at once. To do this, the images in the sequence are first preprocessed
+by some convolutional layers. The resulting feature maps are then passed through several
+bi-directional LSTM layers, which in the end output
+the sequence of poses <span class="math">\(p_1,...,p_n\)</span> for the images.</p>
+<p>The overall network architecture can be seen in the following figure.</p>
+<p><img alt="Architecture of VidLoc" src="{filename}/../images/multi_view_reloc/vidloc.png"></p>
+<p>By taking advantage of the sequential nature of the input, VidLoc
+can reach higher accuracy than PoseNet. The presented paper builds up on this.</p>
+<h2>Learning Multi-view Camera Relocalization with Graph Neural Networks</h2>
+<p>The main idea of this paper is to use Graph Neural Networks
+instead of LSTMs to re-localize a sequence of images.
+They propose a few smart approaches to learn the camera
+poses in a graph based manner, which I will explain in the following.</p>
+<h3>Graph Neural Networks</h3>
+<p>Graph neural networks (GNNs) operate on graphs.
+Given a graph <span class="math">\(G=(V,E)\)</span> with a vertex set <span class="math">\(V=\{v_1,...,v_n\}\)</span>
+and edges <span class="math">\(E=\{(v_i,v_j),...\}\)</span> and some node
+features <span class="math">\(x_i\)</span> for each node <span class="math">\(v_i\)</span>, they define a function
+<span class="math">\(G' = F(G)\)</span> operating on that graph.</p>
+<p>While they can in general change the graph structure (so add and
+remove edges or nodes) we are going to assume that the graph
+structure stays mostly unchanged. We are only interested in
+mapping the input node features <span class="math">\(x_i\)</span> to output node features <span class="math">\(y_i\)</span>.</p>
+<p>This is done with a mechanism called <strong>message passing</strong>, which consists of
+three steps:</p>
+<ol>
+<li>For each edge in the graph we compute a message
+   <span class="math">\(m_{j \rightarrow i} = f_{message}(x_j, x_i)\)</span></li>
+<li>We aggregate the messages arriving at one node. For this we first calculate
+   an attention
+   <span class="math">\(a_{j \rightarrow i} = f_{attention}(x_j, x_i)\)</span> and use this to sum over the messages:
+   <span class="math">\(m_i = \tfrac{1}{|N(i)|} \sum_{j \in N(i)} a_{j \rightarrow i} * m_{j \rightarrow i}\)</span>.
+   It should be noted that not all message passing networks rely on an attention
+   calulation. This is a deliberate design choice in this paper.</li>
+<li>The message is used to update the node feature:
+   <span class="math">\(x_i' = f_{update}(m_i,x_i)\)</span></li>
+</ol>
+<p>The functions <span class="math">\(f_{message}\)</span>, <span class="math">\(f_{update}\)</span> are represented by some neural network. Normally
+the node features are vectors in <span class="math">\(\mathbb{R}^D\)</span>, in this case these function
+can be represented by a couple of fully connected layers.
+GNNs typically chain a couple of these message passing layers, to allow
+representing more complex functions.</p>
+<h3>Application to image sequences</h3>
+<p>Now the question is how this is used to relocate a sequence of images
+<span class="math">\(i_1,...,i_n \in \mathbb{R}^{3 \times H \times W}\)</span>.
+First, the images are passed through some convolutional layers yielding
+feature maps <span class="math">\(i'_j \in \mathbb{R}^{C \times H' \times W'}\)</span>.</p>
+<p>These feature maps are the node features of the graph. Now we only have to define the edges of the graph.
+For this the authors propose to simply initialize with the fully connected graph, that is connect every node to every other node.</p>
+<p>Since the node features are image feature maps, the functions <span class="math">\(f_{message}\)</span> and <span class="math">\(f_{update}\)</span> are defined by
+two convolutional layers.</p>
+<p><hr style="border-top: 1px solid #BBB; margin: 5px;"/>
+<details>
+  <summary>Attention calculation</summary></p>
+<p>If you wonder how the function <span class="math">\(f_{attention}\)</span> is defined:</p>
+<div class="math">$$
+    f_{attention}(x_i, x_j) = \sigma(cs(vec(x_i), vec(x_j)))
+  $$</div>
+<p>where <span class="math">\(vec(\circ)\)</span> flattens the input tensor to a vector
+  and <span class="math">\(cs(\circ, \circ)\)</span> is the cosine similarity.
+</details>
+<hr style="border-top: 1px solid #BBB; margin: 5px;"/></p>
+<h3>Edge pooling</h3>
+<p>The computational cost for computing messages on the fully connected graph with <span class="math">\(n\)</span> nodes
+is <span class="math">\(\mathcal{O}(n^2)\)</span>. For this reason the edges are pruned in the later message passing layers
+to make the graph more sparse. For this the correlation between connected nodes is computed as</p>
+<div class="math">$$
+c_{j \rightarrow i} = cs(maxpool(x_i),maxpool(x_j))
+$$</div>
+<p>where <span class="math">\(cs(\circ, \circ)\)</span> is the cosine similarity and the maxpooling is done over the
+spatial dimensions of the node features.</p>
+<p>The authors argue that this not only reduces the computational cost, but also
+reduces redundancy and prevents overfitting.</p>
+<h3>Overall network architecture</h3>
+<p>With this knowledge we are ready to look at the overall network architecture.</p>
+<p><img alt="Overall network architecture" src="{filename}/../images/multi_view_reloc/details_img2.png"></p>
+<p>The red nodes are convolutional layers, the green nodes message passing layers.
+The result of all message passing layers is concatenated along the channel
+dimension and then pooled across the spatial dimensions. Two fully connected
+layers predict the position <span class="math">\(t_i\)</span> and orientation <span class="math">\(q_i\)</span> (as a quaternion)
+of each input image.</p>
+<h3>Loss function</h3>
+<p>Given the predicted <span class="math">\(\hat{p}_i = (\hat{t}_i, \hat{q}_i)\)</span> and
+ground truth pose <span class="math">\(p_i = (t_i, q_i)\)</span>, the loss for one image is defined as</p>
+<div class="math">$$
+d(p_i, \hat{p}_i) = ||t_i - \hat{t}_i||_1*e^{-\beta_p} + \beta_p +
+   ||r_i - \hat{r}_i||_1*e^{-\gamma_p} + \gamma_p
+$$</div>
+<p>which was first proposed in <a href='#Kendall2017GeometricLF' id='ref-Kendall2017GeometricLF-1'>(Kendall and Cipolla, 2017)</a>.</p>
+<p>where <span class="math">\(\beta_p\)</span>, <span class="math">\(\gamma_p\)</span> are parameters that are optimized jointly
+with the network parameters and automatically balance the rotation and
+translation error against each other.</p>
+<p><hr style="border-top: 1px solid #BBB; margin: 5px;"/>
+<details>
+  <summary>We can derive where this loss comes from in more detailed manner.
+  If you want to see that click here - it is not necessary for understanding the
+  paper though.</summary></p>
+<p>Normally when predicting samples <span class="math">\(r_i, t_i\)</span>, we just minimize
+  the L2 loss: <span class="math">\(L(p_i,\hat{p}_i) = ||r_i - \hat{r}_i||_2 + ||t_i - \hat{t}_i||_2\)</span>.
+  This corresponds to optimizing the negative log likelihood <span class="math">\(-log(P(r_i,t_i|x_i;W))\)</span>
+  (where <span class="math">\(W\)</span> are the model parameters), assuming that all samples are normally
+  distributed, eg:
+  </p>
+<div class="math">$$
+  P(r_i,t_i|x_i;W) = N(\hat{r}_i|r_i;1) * N(\hat{t}_i|t_i;1)
+  $$</div>
+<p>The notation <span class="math">\(N(x|\mu,\sigma^2)\)</span> refers to the likelihood of <span class="math">\(x\)</span> when
+  drawn from a normal distribution with mean <span class="math">\(\mu\)</span> and variance <span class="math">\(\sigma^2\)</span>.</p>
+<p>But this has two problems:</p>
+<ol>
+<li>It assumes that the uncertainty is the same for the translation <span class="math">\(t_i\)</span> and rotation <span class="math">\(r_i\)</span>
+     This is not the case, since they are measured in different units.</li>
+<li>It assumes that the uncertainty is the same across all samples.
+     This isn't necessarily true either, since there might be samples where estimating
+     the position is very easy (and hence has low uncertainty), and others where
+     this is a lot harder.</li>
+</ol>
+<p>To solve this problem, a per-sample uncertainty
+  <span class="math">\(\sigma_{r_i}^2\)</span> and <span class="math">\(\sigma_{t_i}^2\)</span> is introduced.
+  Of course this uncertainty is not part of the ground truth data. For this
+  reason it has to be optimized together with the model parameters.</p>
+<p>With this the negative log-likelihood becomes:</p>
+<div class="math">$$
+   -log(P(r_i,t_i|x_i;W)) = -log(N(\hat{r}_i|r_i;\sigma_{r_i}^2)) - log(N(\hat{t}_i|t_i;\sigma_{t_i}^2))\\
+     \propto \tfrac{1}{\sigma_{r_i}^2} L(\hat{r}_i,r_i) + log(\sigma_{r_i}^2) +
+     \tfrac{1}{\sigma_{t_i}^2} L(\hat{t}_i,t_i) + log(\sigma_{t_i}^2)
+  $$</div>
+<p><span class="math">\(L(\hat{x},x)\)</span> is the L2 distance. In <a href='#Kendall2017GeometricLF' id='ref-Kendall2017GeometricLF-2'>(Kendall and Cipolla, 2017)</a> the authors
+  found that using a L1 loss results in a higher accuracy.</p>
+<p>We just substitute <span class="math">\(\beta_p = log(\sigma_{r_i}^2)\)</span> and
+  <span class="math">\(\gamma_p = log(\sigma_{t_i}^2)\)</span>, which results in a numerically stable
+  optimization. With this we get the loss as defined above.</p>
+<p></details>
+<hr style="border-top: 1px solid #BBB; margin: 5px;"/></p>
+<p>Additionally to this, the authors propose a graph based loss that
+is defined on the relative poses <span class="math">\(\omega_{ij}\)</span> of the edges <span class="math">\(e_{ij}\)</span> after the
+last edge pooling layer and results in the total loss of</p>
+<div class="math">$$
+ L = \tfrac{1}{|V|} \sum_{v_i \in V} d(p_i,\hat{p}_i) +
+  \tfrac{1}{|E|} \sum_{(i,j) \in E} d(\omega_{ij},\hat{\omega}_{ij})
+$$</div>
+<p>The authors argue that this graph based loss induces constraints similar
+to those in a pose graph in SfM and SLAM applications.</p>
+<h3>Experiments</h3>
+<p>The authors evaluate their approach on the 7Scenes <a href='#glocker2013real-time' id='ref-glocker2013real-time-2'>(Glocker et al., 2013)</a>, Cambridge <a href='#kendall2015convolutional' id='ref-kendall2015convolutional-3'>(Kendall et al., 2015)</a> and Oxford
+RobotCar datasets <a href='#Maddern2016' id='ref-Maddern2016-1'>(Maddern et al., 2016)</a>.
+Each of them contains training and testing sequences for several distinct
+scenes. The model is trained on one scene at a time and then evaluated
+on the same scene. For evaluation the translational error
+<span class="math">\(||t_i - \hat{t}_i||_2\)</span> and rotational error <span class="math">\(angle(q_i,\hat{q}_i)\)</span> is
+computed for each image (where <span class="math">\(angle(\circ,\circ)\)</span> gives the angle between two
+quaternions) and the median is reported.</p>
+<p>The following table shows an excerpt of the results on the 7Scenes dataset,
+for all results please check the paper.</p>
+<table>
+<thead>
+<tr>
+<th>Method/Scene</th>
+<th>Chess</th>
+<th>Fire</th>
+<th>Heads</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PoseNet</td>
+<td>0.32m, 8.12°</td>
+<td>0.47m, 14.4°</td>
+<td>0.29m, 12.0°</td>
+</tr>
+<tr>
+<td>VidLoc</td>
+<td>0.18m, -</td>
+<td><strong>0.26m</strong>, -</td>
+<td><strong>0.14m</strong>, -</td>
+</tr>
+<tr>
+<td>MapNet</td>
+<td><strong>0.08m</strong>, 3.25°</td>
+<td>0.27m, 11.69°</td>
+<td>0.18m, 13.25°</td>
+</tr>
+<tr>
+<td>Graph based</td>
+<td><strong>0.08m</strong>, <strong>2.82°</strong></td>
+<td><strong>0.26m</strong>, <strong>8.94°</strong></td>
+<td>0.16m, <strong>11.41°</strong></td>
+</tr>
+</tbody>
+</table>
+<p>The gist of the results is that the presented methods often yields SOTA accuracy
+or at least very close to it. One can also plot the predicted trajectories
+on the Oxford Robot Car dataset, which can be seen in the next picture.</p>
+<p><img alt="Overall network architecture" src="{filename}/../images/multi_view_reloc/result_vis_oxford.png"></p>
+<p>The black line shows the ground truth, while the red line shows the prediction
+of the respective model. We can see that the predictions of the proposed
+methods are superior in most cases.</p>
+<h3>Ablation study</h3>
+<p>The authors also do an ablation study on some components of their network
+(on the Oxford Robot Car dataset).</p>
+<p>First they study what happens when they drop the graph based loss
+in their optimization, so optimizing</p>
+<div class="math">$$
+ L = \tfrac{1}{|V|} \sum_{v_i \in V} d(p_i,\hat{p}_i)
+$$</div>
+<p>instead of</p>
+<div class="math">$$
+ L = \tfrac{1}{|V|} \sum_{v_i \in V} d(p_i,\hat{p}_i) +
+  \tfrac{1}{|E|} \sum_{(i,j) \in E} d(\omega_{ij},\hat{\omega}_{ij})
+$$</div>
+<p>resulting in the following performance:</p>
+<table>
+<thead>
+<tr>
+<th>Method/Scene</th>
+<th>LOOP1</th>
+<th>LOOP2</th>
+<th>FULL1</th>
+<th>FULL2</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Without graph loss</td>
+<td>10.60m, 4.54°</td>
+<td>10.77m, 4.12°</td>
+<td>20.26m, 4.78°</td>
+<td>39.57m, 8.05°</td>
+</tr>
+<tr>
+<td>With graph loss</td>
+<td>9.07m, 3.15°</td>
+<td>9.16m, 3.22°</td>
+<td>19.70m, 4.46°</td>
+<td>39.83m, 8.17°</td>
+</tr>
+</tbody>
+</table>
+<p>we can see that the graph based loss has a positive impact
+on accuracy in most cases.</p>
+<p>Next they study the influence of the amout of message passing layers used in the network. They drop some (or all) of the
+later layers.</p>
+<table>
+<thead>
+<tr>
+<th>Method/Scene</th>
+<th>LOOP1</th>
+<th>LOOP2</th>
+<th>FULL1</th>
+<th>FULL2</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>With 1 MP layer</td>
+<td>9.07m, 3.15°</td>
+<td>9.16m, 3.22°</td>
+<td>19.70m, 4.46°</td>
+<td>39.83m, 8.17°</td>
+</tr>
+<tr>
+<td>With 2 MP layers</td>
+<td>8.49m, 3.11°</td>
+<td>8.62m, 3.19°</td>
+<td>18.76m, 4.35°</td>
+<td>38.76m, 9.41°</td>
+</tr>
+<tr>
+<td>With 3 MP layers</td>
+<td>8.46m, 3.02°</td>
+<td>7.68m, 2.78°</td>
+<td>17.35m, 3.59°</td>
+<td>36.84m, 8.22°</td>
+</tr>
+<tr>
+<td>With 4 MP layers</td>
+<td>7.76m, 2.54°</td>
+<td>8.15m, 2.57°</td>
+<td>17.35m, 3.47°</td>
+<td>37.81m, 7.55°</td>
+</tr>
+</tbody>
+</table>
+<p>More layers also improve the accuracy.</p>
+<p>Third, they study what happens, if the <span class="math">\(f_{message}\)</span> and
+<span class="math">\(f_{update}\)</span> functions are defined by simple
+MLPs instead of CNNs and operate on feature vectors instead of
+images. Both models are trained with one message passing
+layer and no graph based loss.</p>
+<table>
+<thead>
+<tr>
+<th>Method/Scene</th>
+<th>LOOP1</th>
+<th>LOOP2</th>
+<th>FULL1</th>
+<th>FULL2</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>With 1 MLP layer</td>
+<td>23.43m, 9.75°</td>
+<td>24.65m, 10.55°</td>
+<td>34.47m, 4.07°</td>
+<td>58.16m, 9.73°</td>
+</tr>
+<tr>
+<td>With 1 CNN layer</td>
+<td>10.60m, 4.54°</td>
+<td>10.77m, 4.12°</td>
+<td>20.26m, 4.78°</td>
+<td>39.57m, 8.05°</td>
+</tr>
+</tbody>
+</table>
+<p>We can see that the combination of GNNs with CNNs brings by far
+the greatest improvement.</p>
+<p>Interestingly they do not evaluate the effect of the edge
+pooling layer. This would be interesting to see, since they claim that
+edge pooling prevents overfitting. One could alternatively also make
+the hypothesis that more edges would lead to a better accuracy
+since the update steps in the GNN can take information from more neighbors
+into account.</p>
+<h2>Discussion</h2>
+<p>The authors propose an interesting approach to camera re-localization.
+There are some interesting follow-up research questions that arise from
+this paper.</p>
+<h3>Network architecture</h3>
+<p>The proposed network architecture is invariant to the sequence
+order of the input images. If you shuffle the images
+around, the same fully connected graph will be initialized and since
+the edge pruning only relies on the node features, the same edges
+will be pruned as well.</p>
+<p>If you forget about the edge pruning for a second, the proposed architecture
+is actually equivalent to a transformer. (Transformers are Graph Neural
+Networks on fully connected graphs. If you want to know more,
+have a look at <a href="https://graphdeeplearning.github.io/post/transformers-are-gnns/">this</a>
+blog post for example).</p>
+<p>From this two interesting questions arise</p>
+<ol>
+<li>Would this network benefit from the positional information when
+  applied to image sequences? Given the correspondence to transformers,
+  one could try to include a positional encoding <a href='#DBLP:journals/corr/VaswaniSPUJGKP17' id='ref-DBLP:journals/corr/VaswaniSPUJGKP17-1'>(Vaswani et al., 2017)</a>
+  in the input features.</li>
+<li>Does this network architecture work for unordered sequences as well? Many
+  image collections in reconstruction <a href='#romeday' id='ref-romeday-1'>(Frahm et al., 2010)</a> are mined
+  from the internet and thus do not have a sequential nature.</li>
+</ol>
+<p>From question 2 we can derive another follow up question. Many
+image collections mined from the internet consist of photos taken with
+many different cameras and thus with many different distortions and
+calibrations. It would be interesting to know if this method can
+deal with that - especially since autocalibration is not an easy
+problem for classical methods.</p>
+<h3>Runtime</h3>
+<p>The graph for the GNN is initialized fully connected. Thus it will contain
+<span class="math">\(\mathcal{O}(n^2)\)</span> edges for a sequence with <span class="math">\(n\)</span> images. This incurs a
+space and time complexity of <span class="math">\(\mathcal{O}(n^2)\)</span> in the first message passing
+layer. This is of course not nice for longer sequences. One could try to
+replace the fully connected Graph attention layer with a sparse variant
+similar to sparse transformers <a href='#DBLP:journals/corr/abs-1904-10509' id='ref-DBLP:journals/corr/abs-1904-10509-1'>(Child et al., 2019)</a> <a href='#choromanski2020rethinking' id='ref-choromanski2020rethinking-1'>(Choromanski et al., 2020)</a>.</p>
+<h3>CamNet</h3>
+<p>The authors cite CamNet <a href='#Ding_2019_ICCV' id='ref-Ding_2019_ICCV-1'>(Ding et al., 2019)</a>, another deep learning based method
+for camera re-localization (although it is not an Absolute Pose Regression
+method). They do <strong>not</strong> include it in their evaluation. The table below
+comparse the performance of CamNet and GNN based method on the 7Scenes
+dataset:</p>
+<table>
+<thead>
+<tr>
+<th>Method/Scene</th>
+<th>Chess</th>
+<th>Fire</th>
+<th>Heads</th>
+<th>Office</th>
+<th>Pumpkin</th>
+<th>Kitchen</th>
+<th>Stairs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Graph based NN</td>
+<td>0.08m, 2.82°</td>
+<td>0.26m, 8.94°</td>
+<td>0.17m, 11.41°</td>
+<td>0.18m, 5.08°</td>
+<td>0.15m, 2.77°</td>
+<td>0.25m, 4.48°</td>
+<td>0.23m, 8.78°</td>
+</tr>
+<tr>
+<td>CamNet</td>
+<td>0.04m, 1.73°</td>
+<td>0.03m, 1.74°</td>
+<td>0.05m, 1.98°</td>
+<td>0.04m, 1.62°</td>
+<td>0.04m, 1.64°</td>
+<td>0.04m, 1.63°</td>
+<td>0.04m, 1.51°</td>
+</tr>
+</tbody>
+</table>
+<p>We can also have a look at the visualization on the Oxford Robot Car
+dataset (only LOOP1 since CamNet doesn't offer any other visualizations).</p>
+<p><img alt="Visual comparison of the results to CamNet" src="{filename}/../images/multi_view_reloc/comparison_camnet.png"></p>
+<p>We can clearly see that CamNet outperforms the graph based network.</p>
+<p>Citing the paper show that the authors knew of this approach, yet they didn't
+include them in their final results.</p>
+<h3>Other approaches</h3>
+<p>The last section already showed that there are deep learning methods that do
+not do absolute pose regression but perform better for camera re-localization.
+There is even research <a href='#DBLP:journals/corr/abs-1903-07504' id='ref-DBLP:journals/corr/abs-1903-07504-1'>(Sattler et al., 2019)</a> that suggests that absolute pose regression
+can <strong>not</strong>:</p>
+<ul>
+<li>Generalize beyond the training data.</li>
+<li>Perform better than structured approaches.</li>
+</ul>
+<p>This is motivated by the fact that these methods, while relatively fast
+have never outperformed classical approaches for camera re-localization <a href='#DBLP:journals/corr/abs-1903-07504' id='ref-DBLP:journals/corr/abs-1903-07504-2'>(Sattler et al., 2019)</a>.
+This does not mean that this line of research is completely useless though.</p>
+<p>While absolute pose regression might not necessarily be the best application
+for end-to-end deep learning - there are other directions where it might
+be feasible to integrate deep learning.</p>
+<p>Graph based methods especially would be an interesting application for
+Structure from Motion (SfM) or Simultaneous Localization and Mapping (SLAM).
+There is some research on applying deep learning to Visual Odometry <a href='#DBLP:journals/corr/abs-1709-08429' id='ref-DBLP:journals/corr/abs-1709-08429-1'>(Wang et al., 2017)</a>
+Sfm <a href='#wei2020deepsfm' id='ref-wei2020deepsfm-1'>(Wei et al., 2020)</a>
+and SLAM <a href='#DBLP:journals/corr/abs-1901-07223' id='ref-DBLP:journals/corr/abs-1901-07223-1'>(Kang et al., 2019)</a>. GNNs for these topics have only been evaluated
+in small use cases <a href='#DBLP:journals/corr/abs-1802-06857' id='ref-DBLP:journals/corr/abs-1802-06857-1'>(Parisotto et al., 2018)</a> and are an interesting area of further research.</p>
+<h3>Implementation</h3>
+<p>In the paper the authors claim that an implementation is provided at <a href="https://github.com/feixue94/grnet">https://github.com/feixue94/grnet</a>.
+Unfortunately the github repository at that URL provides nothing but an empty Readme file.</p>
+<script type="text/javascript">if (!document.getElementById('mathjaxscript_pelican_#%&#64;#$&#64;#')) {
+    var align = "center",
+        indent = "0em",
+        linebreak = "false";
+
+    if (false) {
+        align = (screen.width < 768) ? "left" : align;
+        indent = (screen.width < 768) ? "0em" : indent;
+        linebreak = (screen.width < 768) ? 'true' : linebreak;
+    }
+
+    var mathjaxscript = document.createElement('script');
+    mathjaxscript.id = 'mathjaxscript_pelican_#%&#64;#$&#64;#';
+    mathjaxscript.type = 'text/javascript';
+    mathjaxscript.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/latest.js?config=TeX-AMS-MML_HTMLorMML';
+
+    var configscript = document.createElement('script');
+    configscript.type = 'text/x-mathjax-config';
+    configscript[(window.opera ? "innerHTML" : "text")] =
+        "MathJax.Hub.Config({" +
+        "    config: ['MMLorHTML.js']," +
+        "    TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'none' } }," +
+        "    jax: ['input/TeX','input/MathML','output/HTML-CSS']," +
+        "    extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']," +
+        "    displayAlign: '"+ align +"'," +
+        "    displayIndent: '"+ indent +"'," +
+        "    showMathMenu: true," +
+        "    messageStyle: 'normal'," +
+        "    tex2jax: { " +
+        "        inlineMath: [ ['\\\\(','\\\\)'] ], " +
+        "        displayMath: [ ['$$','$$'] ]," +
+        "        processEscapes: true," +
+        "        preview: 'TeX'," +
+        "    }, " +
+        "    'HTML-CSS': { " +
+        "        availableFonts: ['STIX', 'TeX']," +
+        "        preferredFont: 'STIX'," +
+        "        styles: { '.MathJax_Display, .MathJax .mo, .MathJax .mi, .MathJax .mn': {color: 'inherit ! important'} }," +
+        "        linebreaks: { automatic: "+ linebreak +", width: '90% container' }," +
+        "    }, " +
+        "}); " +
+        "if ('default' !== 'default') {" +
+            "MathJax.Hub.Register.StartupHook('HTML-CSS Jax Ready',function () {" +
+                "var VARIANT = MathJax.OutputJax['HTML-CSS'].FONTDATA.VARIANT;" +
+                "VARIANT['normal'].fonts.unshift('MathJax_default');" +
+                "VARIANT['bold'].fonts.unshift('MathJax_default-bold');" +
+                "VARIANT['italic'].fonts.unshift('MathJax_default-italic');" +
+                "VARIANT['-tex-mathit'].fonts.unshift('MathJax_default-italic');" +
+            "});" +
+            "MathJax.Hub.Register.StartupHook('SVG Jax Ready',function () {" +
+                "var VARIANT = MathJax.OutputJax.SVG.FONTDATA.VARIANT;" +
+                "VARIANT['normal'].fonts.unshift('MathJax_default');" +
+                "VARIANT['bold'].fonts.unshift('MathJax_default-bold');" +
+                "VARIANT['italic'].fonts.unshift('MathJax_default-italic');" +
+                "VARIANT['-tex-mathit'].fonts.unshift('MathJax_default-italic');" +
+            "});" +
+        "}";
+
+    (document.body || document.getElementsByTagName('head')[0]).appendChild(configscript);
+    (document.body || document.getElementsByTagName('head')[0]).appendChild(mathjaxscript);
+}
+</script><hr>
+<h2>Bibliography</h2>
+<p id='DBLP:journals/corr/ArandjelovicGTP15'>Relja Arandjelovic, Petr Gron<span class="bibtex-protected"><span class="bibtex-protected">á</span></span>t, Akihiko Torii, Tom<span class="bibtex-protected"><span class="bibtex-protected">á</span></span>s Pajdla, and Josef Sivic.
+Netvlad: <span class="bibtex-protected">CNN</span> architecture for weakly supervised place recognition.
+<em>CoRR</em>, 2015.
+URL: <a href="http://arxiv.org/abs/1511.07247">http://arxiv.org/abs/1511.07247</a>, <a href="https://arxiv.org/abs/1511.07247">arXiv:1511.07247</a>. <a class="cite-backref" href="#ref-DBLP:journals/corr/ArandjelovicGTP15-1" title="Jump back to reference 1">↩</a></p>
+<p id='DBLP:journals/corr/abs-1712-03342'>Samarth Brahmbhatt, Jinwei Gu, Kihwan Kim, James Hays, and Jan Kautz.
+Mapnet: geometry-aware learning of maps for camera localization.
+<em>CoRR</em>, 2017.
+URL: <a href="http://arxiv.org/abs/1712.03342">http://arxiv.org/abs/1712.03342</a>, <a href="https://arxiv.org/abs/1712.03342">arXiv:1712.03342</a>. <a class="cite-backref" href="#ref-DBLP:journals/corr/abs-1712-03342-1" title="Jump back to reference 1">↩</a></p>
+<p id='10.1007/978-3-642-15561-1_56'>Michael Calonder, Vincent Lepetit, Christoph Strecha, and Pascal Fua.
+Brief: binary robust independent elementary features.
+In Kostas Daniilidis, Petros Maragos, and Nikos Paragios, editors, <em>Computer Vision – ECCV 2010</em>, 778–792. Berlin, Heidelberg, 2010. Springer Berlin Heidelberg. <a class="cite-backref" href="#ref-10.1007/978-3-642-15561-1_56-1" title="Jump back to reference 1">↩</a></p>
+<p id='DBLP:journals/corr/abs-1904-10509'>Rewon Child, Scott Gray, Alec Radford, and Ilya Sutskever.
+Generating long sequences with sparse transformers.
+<em>CoRR</em>, 2019.
+URL: <a href="http://arxiv.org/abs/1904.10509">http://arxiv.org/abs/1904.10509</a>, <a href="https://arxiv.org/abs/1904.10509">arXiv:1904.10509</a>. <a class="cite-backref" href="#ref-DBLP:journals/corr/abs-1904-10509-1" title="Jump back to reference 1">↩</a></p>
+<p id='choromanski2020rethinking'>Krzysztof Choromanski, Valerii Likhosherstov, David Dohan, Xingyou Song, Andreea Gane, Tamas Sarlos, Peter Hawkins, Jared Davis, Afroz Mohiuddin, Lukasz Kaiser, David Belanger, Lucy Colwell, and Adrian Weller.
+Rethinking attention with performers.
+2020.
+<a href="https://arxiv.org/abs/2009.14794">arXiv:2009.14794</a>. <a class="cite-backref" href="#ref-choromanski2020rethinking-1" title="Jump back to reference 1">↩</a></p>
+<p id='DBLP:journals/corr/ClarkWMTW17'>Ronald Clark, Sen Wang, Andrew Markham, Niki Trigoni, and Hongkai Wen.
+Vidloc: 6-dof video-clip relocalization.
+<em>CoRR</em>, 2017.
+URL: <a href="http://arxiv.org/abs/1702.06521">http://arxiv.org/abs/1702.06521</a>, <a href="https://arxiv.org/abs/1702.06521">arXiv:1702.06521</a>. <a class="cite-backref" href="#ref-DBLP:journals/corr/ClarkWMTW17-1" title="Jump back to reference 1">↩</a></p>
+<p id='Ding_2019_ICCV'>Mingyu Ding, Zhe Wang, Jiankai Sun, Jianping Shi, and Ping Luo.
+Camnet: coarse-to-fine retrieval for camera re-localization.
+In <em>Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)</em>. October 2019. <a class="cite-backref" href="#ref-Ding_2019_ICCV-1" title="Jump back to reference 1">↩</a></p>
+<p id='romeday'>Jan-Michael Frahm, Pierre Fite-Georgel, David Gallup, Tim Johnson, Rahul Raguram, Changchang Wu, Yi-Hung Jen, Enrique Dunn, Brian Clipp, Svetlana Lazebnik, and Marc Pollefeys.
+Building rome on a cloudless day.
+In <em>Building Rome on a Cloudless Day</em>, volume 6314, 368&ndash;381. 07 2010.
+<a href="https://doi.org/10.1007/978-3-642-15561-1_27">doi:10.1007/978-3-642-15561-1_27</a>. <a class="cite-backref" href="#ref-romeday-1" title="Jump back to reference 1">↩</a></p>
+<p id='glocker2013real-time'>Ben Glocker, Shahram Izadi, Jamie Shotton, and Antonio Criminisi.
+Real-time rgb-d camera relocalization.
+In <em>International Symposium on Mixed and Augmented Reality (ISMAR)</em>. IEEE, October 2013.
+URL: <a href="https://www.microsoft.com/en-us/research/publication/real-time-rgb-d-camera-relocalization/">https://www.microsoft.com/en-us/research/publication/real-time-rgb-d-camera-relocalization/</a>. <a class="cite-backref" href="#ref-glocker2013real-time-1" title="Jump back to reference 1">↩</a><a class="cite-backref" href="#ref-glocker2013real-time-1" title="Jump back to reference 1"> <sup>1</sup> </a><a class="cite-backref" href="#ref-glocker2013real-time-2" title="Jump back to reference 2"><sup>2</sup> </a></p>
+<p id='DBLP:journals/corr/abs-1901-07223'>Rong Kang, Jieqi Shi, Xueming Li, Yang Liu, and Xiao Liu.
+<span class="bibtex-protected">DF-SLAM:</span> <span class="bibtex-protected">A</span> deep-learning enhanced visual <span class="bibtex-protected">SLAM</span> system based on deep local features.
+<em>CoRR</em>, 2019.
+URL: <a href="http://arxiv.org/abs/1901.07223">http://arxiv.org/abs/1901.07223</a>, <a href="https://arxiv.org/abs/1901.07223">arXiv:1901.07223</a>. <a class="cite-backref" href="#ref-DBLP:journals/corr/abs-1901-07223-1" title="Jump back to reference 1">↩</a></p>
+<p id='Kendall2017GeometricLF'>Alex Kendall and R.&nbsp;Cipolla.
+Geometric loss functions for camera pose regression with deep learning.
+<em>2017 IEEE Conference on Computer Vision and Pattern Recognition (CVPR)</em>, pages 6555&ndash;6564, 2017. <a class="cite-backref" href="#ref-Kendall2017GeometricLF-1" title="Jump back to reference 1">↩</a><a class="cite-backref" href="#ref-Kendall2017GeometricLF-1" title="Jump back to reference 1"> <sup>1</sup> </a><a class="cite-backref" href="#ref-Kendall2017GeometricLF-2" title="Jump back to reference 2"><sup>2</sup> </a></p>
+<p id='kendall2015convolutional'>Alex Kendall, Matthew Grimes, and Roberto Cipolla.
+Posenet: a convolutional network for real-time 6-dof camera relocalization.
+2015. <a class="cite-backref" href="#ref-kendall2015convolutional-1" title="Jump back to reference 1">↩</a><a class="cite-backref" href="#ref-kendall2015convolutional-1" title="Jump back to reference 1"> <sup>1</sup> </a><a class="cite-backref" href="#ref-kendall2015convolutional-2" title="Jump back to reference 2"><sup>2</sup> </a><a class="cite-backref" href="#ref-kendall2015convolutional-3" title="Jump back to reference 3"><sup>3</sup> </a></p>
+<p id='Maddern2016'>Will Maddern, Geoffrey Pascoe, Chris Linegar, and Paul Newman.
+1 year, 1000 km: the oxford robotcar dataset.
+<em>The International Journal of Robotics Research</em>, 36:, 11 2016.
+<a href="https://doi.org/10.1177/0278364916679498">doi:10.1177/0278364916679498</a>. <a class="cite-backref" href="#ref-Maddern2016-1" title="Jump back to reference 1">↩</a></p>
+<p id='Oliva2006BuildingTG'>A.&nbsp;Oliva and A.&nbsp;Torralba.
+Building the gist of a scene: the role of global image features in recognition.
+<em>Progress in brain research</em>, 155:23&ndash;36, 2006. <a class="cite-backref" href="#ref-Oliva2006BuildingTG-1" title="Jump back to reference 1">↩</a></p>
+<p id='DBLP:journals/corr/abs-1802-06857'>Emilio Parisotto, Devendra&nbsp;Singh Chaplot, Jian Zhang, and Ruslan Salakhutdinov.
+Global pose estimation with an attention-based recurrent network.
+<em>CoRR</em>, 2018.
+URL: <a href="http://arxiv.org/abs/1802.06857">http://arxiv.org/abs/1802.06857</a>, <a href="https://arxiv.org/abs/1802.06857">arXiv:1802.06857</a>. <a class="cite-backref" href="#ref-DBLP:journals/corr/abs-1802-06857-1" title="Jump back to reference 1">↩</a></p>
+<p id='DBLP:journals/corr/abs-1804-08366'>Noha Radwan, Abhinav Valada, and Wolfram Burgard.
+Vlocnet++: deep multitask learning for semantic visual localization and odometry.
+<em>CoRR</em>, 2018.
+URL: <a href="http://arxiv.org/abs/1804.08366">http://arxiv.org/abs/1804.08366</a>, <a href="https://arxiv.org/abs/1804.08366">arXiv:1804.08366</a>. <a class="cite-backref" href="#ref-DBLP:journals/corr/abs-1804-08366-1" title="Jump back to reference 1">↩</a></p>
+<p id='DBLP:journals/corr/abs-1903-07504'>Torsten Sattler, Qunjie Zhou, Marc Pollefeys, and Laura Leal<span class="bibtex-protected">-</span>Taix<span class="bibtex-protected"><span class="bibtex-protected">é</span></span>.
+Understanding the limitations of cnn-based absolute camera pose regression.
+<em>CoRR</em>, 2019.
+URL: <a href="http://arxiv.org/abs/1903.07504">http://arxiv.org/abs/1903.07504</a>, <a href="https://arxiv.org/abs/1903.07504">arXiv:1903.07504</a>. <a class="cite-backref" href="#ref-DBLP:journals/corr/abs-1903-07504-1" title="Jump back to reference 1">↩</a><a class="cite-backref" href="#ref-DBLP:journals/corr/abs-1903-07504-1" title="Jump back to reference 1"> <sup>1</sup> </a><a class="cite-backref" href="#ref-DBLP:journals/corr/abs-1903-07504-2" title="Jump back to reference 2"><sup>2</sup> </a></p>
+<p id='DBLP:journals/corr/SzegedyLJSRAEVR14'>Christian Szegedy, Wei Liu, Yangqing Jia, Pierre Sermanet, Scott&nbsp;E. Reed, Dragomir Anguelov, Dumitru Erhan, Vincent Vanhoucke, and Andrew Rabinovich.
+Going deeper with convolutions.
+<em>CoRR</em>, 2014.
+URL: <a href="http://arxiv.org/abs/1409.4842">http://arxiv.org/abs/1409.4842</a>, <a href="https://arxiv.org/abs/1409.4842">arXiv:1409.4842</a>. <a class="cite-backref" href="#ref-DBLP:journals/corr/SzegedyLJSRAEVR14-1" title="Jump back to reference 1">↩</a></p>
+<p id='DBLP:journals/corr/abs-1803-03642'>Abhinav Valada, Noha Radwan, and Wolfram Burgard.
+Deep auxiliary learning for visual localization and odometry.
+<em>CoRR</em>, 2018.
+URL: <a href="http://arxiv.org/abs/1803.03642">http://arxiv.org/abs/1803.03642</a>, <a href="https://arxiv.org/abs/1803.03642">arXiv:1803.03642</a>. <a class="cite-backref" href="#ref-DBLP:journals/corr/abs-1803-03642-1" title="Jump back to reference 1">↩</a></p>
+<p id='DBLP:journals/corr/VaswaniSPUJGKP17'>Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan&nbsp;N. Gomez, Lukasz Kaiser, and Illia Polosukhin.
+Attention is all you need.
+<em>CoRR</em>, 2017.
+URL: <a href="http://arxiv.org/abs/1706.03762">http://arxiv.org/abs/1706.03762</a>, <a href="https://arxiv.org/abs/1706.03762">arXiv:1706.03762</a>. <a class="cite-backref" href="#ref-DBLP:journals/corr/VaswaniSPUJGKP17-1" title="Jump back to reference 1">↩</a></p>
+<p id='DBLP:journals/corr/abs-1709-08429'>Sen Wang, Ronald Clark, Hongkai Wen, and Niki Trigoni.
+Deepvo: towards end-to-end visual odometry with deep recurrent convolutional neural networks.
+<em>CoRR</em>, 2017.
+URL: <a href="http://arxiv.org/abs/1709.08429">http://arxiv.org/abs/1709.08429</a>, <a href="https://arxiv.org/abs/1709.08429">arXiv:1709.08429</a>. <a class="cite-backref" href="#ref-DBLP:journals/corr/abs-1709-08429-1" title="Jump back to reference 1">↩</a></p>
+<p id='wei2020deepsfm'>Xingkui Wei, Yinda Zhang, Zhuwen Li, Yanwei Fu, and Xiangyang Xue.
+Deepsfm: structure from motion via deep bundle adjustment.
+2020.
+<a href="https://arxiv.org/abs/1912.09697">arXiv:1912.09697</a>. <a class="cite-backref" href="#ref-wei2020deepsfm-1" title="Jump back to reference 1">↩</a></p>
+<p id='GalvezLopez2012'>D.&nbsp;<span class="bibtex-protected">Galvez-López</span> and J.&nbsp;D. <span class="bibtex-protected">Tardos</span>.
+Bags of binary words for fast place recognition in image sequences.
+<em>IEEE Transactions on Robotics</em>, 28(5):1188&ndash;1197, 2012. <a class="cite-backref" href="#ref-GalvezLopez2012-1" title="Jump back to reference 1">↩</a></p>
+<p id='1288525'>D.&nbsp;<span class="bibtex-protected">Nister</span>.
+An efficient solution to the five-point relative pose problem.
+<em>IEEE Transactions on Pattern Analysis and Machine Intelligence</em>, 26(6):756&ndash;770, 2004.
+<a href="https://doi.org/10.1109/TPAMI.2004.17">doi:10.1109/TPAMI.2004.17</a>. <a class="cite-backref" href="#ref-1288525-1" title="Jump back to reference 1">↩</a></p>
+<p id='6126544'>E.&nbsp;<span class="bibtex-protected">Rublee</span>, V.&nbsp;<span class="bibtex-protected">Rabaud</span>, K.&nbsp;<span class="bibtex-protected">Konolige</span>, and G.&nbsp;<span class="bibtex-protected">Bradski</span>.
+Orb: an efficient alternative to sift or surf.
+In <em>2011 International Conference on Computer Vision</em>, volume, 2564&ndash;2571. 2011.
+<a href="https://doi.org/10.1109/ICCV.2011.6126544">doi:10.1109/ICCV.2011.6126544</a>. <a class="cite-backref" href="#ref-6126544-1" title="Jump back to reference 1">↩</a></p>
+
+  </div>
+  <div class="tag-cloud">
+    <p>
+      <a href="https://hoff97.github.io/tag/deep-learning.html">deep-learning</a>
+      <a href="https://hoff97.github.io/tag/computer-vision.html">computer-vision</a>
+    </p>
+  </div>
+
+  <div class="center social-share">
+    <p>Like this article? Share it with your friends!</p>
+    <div class="addthis_native_toolbox"></div>
+    <div class="addthis_sharing_toolbox"></div>
+    <div class="addthis_inline_share_toolbox"></div>
+  </div>
+
+
+    <div class="addthis_relatedposts_inline"></div>
+
+
+</article>
+
+    <footer>
+<p>
+  &copy; 2020  - This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/deed.en_US" target="_blank">Creative Commons Attribution-ShareAlike</a>
+</p>
+<p>
+Built with <a href="http://getpelican.com" target="_blank">Pelican</a> using <a href="http://bit.ly/flex-pelican" target="_blank">Flex</a> theme
+</p><p>
+  <a rel="license"
+     href="http://creativecommons.org/licenses/by-sa/4.0/"
+     target="_blank">
+    <img alt="Creative Commons License"
+         title="Creative Commons License"
+         style="border-width:0"
+           src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png"
+         width="80"
+         height="15"/>
+  </a>
+</p>    </footer>
+  </main>
+
+
+    <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-77hh6723hhjd" async="async"></script>
+
+
+<script type="application/ld+json">
+{
+  "@context" : "http://schema.org",
+  "@type" : "Blog",
+  "name": " haskai ",
+  "url" : "https://hoff97.github.io",
+  "image": "/images/profile.png",
+  "description": "Foo Bar's Thoughts and Writings"
+}
+</script>
+
+</body>
+</html>
