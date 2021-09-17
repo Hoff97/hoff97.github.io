@@ -3,4 +3,4 @@
 	url = https://github.com/VorpalBlade/pelican-cite.git
 [submodule "deps/Flex"]
 	path = deps/Flex
-	url = git@github.com:alexandrevicenzi/Flex.git
+	url = https://github.com/alexandrevicenzi/Flex.git
