@@ -115,6 +115,16 @@ and texture coordinates.
 
 ### Considerations for fast speed
 
+With this setup, its possible to implement quite a few tensor operations. But just running stuff in WebGL
+naively is not enough to get fast inference. For this you have to be very careful to move
+as little data as possible between the CPU and the GPU. When does this happen? Well for example when:
+
+- A new shader gets compiled. This is super slow, and thus should only be done once for each shader
+- Tensor values are transferred to the GPU
+
+These two are maybe obvious, but there's a third case that can really slow down shader execution speeds.
+For many operations you have to provide additional information
+
 TODO: talk about precompiling shaders, keeping all data on GPU
 
 # Features of TensorJS
