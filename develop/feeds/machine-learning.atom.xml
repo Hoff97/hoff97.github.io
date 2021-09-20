@@ -88,6 +88,15 @@ to textures and back. For this you&lt;/p&gt;
 &lt;p&gt;In the fragment shader you of course also have to do this conversion between tensor indices
 and texture coordinates.&lt;/p&gt;
 &lt;h3&gt;Considerations for fast speed&lt;/h3&gt;
+&lt;p&gt;With this setup, its possible to implement quite a few tensor operations. But just running stuff in WebGL
+naively is not enough to get fast inference. For this you have to be very careful to move
+as little data as possible between the CPU and the GPU. When does this happen? Well for example when:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;A new shader gets compiled. This is super slow, and thus should only be done once for each shader&lt;/li&gt;
+&lt;li&gt;Tensor values are transferred to the GPU&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;These two are maybe obvious, but there's a third case that can really slow down shader execution speeds.
+For many operations you have to provide additional information&lt;/p&gt;
 &lt;p&gt;TODO: talk about precompiling shaders, keeping all data on GPU&lt;/p&gt;
 &lt;h1&gt;Features of TensorJS&lt;/h1&gt;
 &lt;h2&gt;ONNX support&lt;/h2&gt;
