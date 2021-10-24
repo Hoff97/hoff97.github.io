@@ -227,20 +227,133 @@ as little data as possible between the CPU and the GPU. When does this happen? W
 <li>Tensor values are transferred to the GPU</li>
 </ul>
 <p>These two are maybe obvious, but there's a third case that can really slow down shader execution speeds.
-For many operations you have to provide additional information</p>
-<p>TODO: talk about precompiling shaders, keeping all data on GPU</p>
+For many operations you have to provide additional information. Take the matrix multiplication operation
+for example. A rough implementation in GLSL, the Shading Language in WebGL, might look something like this:</p>
+<div class="highlight"><pre><span></span><span class="k">uniform</span> <span class="kt">sampler2D</span> <span class="n">_A</span><span class="p">;</span>
+<span class="k">uniform</span> <span class="kt">sampler2D</span> <span class="n">_B</span><span class="p">;</span>
+
+<span class="k">uniform</span> <span class="kt">int</span> <span class="n">shapeA</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
+<span class="k">uniform</span> <span class="kt">int</span> <span class="n">shapeB</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
+
+<span class="k">uniform</span> <span class="kt">int</span> <span class="n">transposeA</span><span class="p">;</span>
+<span class="k">uniform</span> <span class="kt">int</span> <span class="n">transposeB</span><span class="p">;</span>
+
+<span class="kt">float</span> <span class="n">process</span><span class="p">(</span><span class="kt">int</span> <span class="n">index</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="p">{</span>
+  <span class="c1">// Do the actual matrix multiplication</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>Next to the actual input tensors, which are passed in as textures accessed by samplers, we provide additional
+information like the shape of the both input tensors and if they are transposed. These uniforms are passed
+in from Javascript before running the actual shader:</p>
+<div class="highlight"><pre><span></span><span class="kd">var</span> <span class="nx">offsetTransposeA</span> <span class="o">=</span> <span class="nx">gl</span><span class="p">.</span><span class="nx">getUniformLocation</span><span class="p">(</span><span class="nx">matrixMultProgramm</span><span class="p">,</span> <span class="s2">&quot;transposeA&quot;</span><span class="p">);</span>
+<span class="nx">gl</span><span class="p">.</span><span class="nx">uniform1i</span> <span class="p">(</span><span class="nx">offsetTransposeA</span><span class="p">,</span> <span class="mf">0</span> <span class="cm">/* Or 1 if A is transposed */</span><span class="p">);</span>
+<span class="c1">// Do the same for all other uniforms</span>
+</pre></div>
+
+
+<p>This approach has the advantage, that you only ever need to compile one shader for one type of tensor operation.
+Unfortunately, the calls to <code>gl.uniform*</code>, which transfer data from the CPU to the GPU, end up taking longer than the
+shader invocations themselves. So what can you do to avoid the transfers between CPU and GPU? Compile
+these uniforms as constants into the shaders themselves instead! The above programm would instead look something like
+this, when compiled for two tensors of shape <code>[3,4]</code> and <code>[4,5]</code>.</p>
+<div class="highlight"><pre><span></span><span class="k">uniform</span> <span class="kt">sampler2D</span> <span class="n">_A</span><span class="p">;</span>
+<span class="k">uniform</span> <span class="kt">sampler2D</span> <span class="n">_B</span><span class="p">;</span>
+
+<span class="kt">int</span> <span class="n">shapeA</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
+<span class="kt">int</span> <span class="n">shapeB</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
+
+<span class="kt">int</span> <span class="n">transposeA</span><span class="p">;</span>
+<span class="kt">int</span> <span class="n">transposeB</span><span class="p">;</span>
+
+<span class="kt">void</span> <span class="n">initVars</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">shapeA</span><span class="p">[</span><span class="mo">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
+  <span class="n">shapeA</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
+
+  <span class="n">shapeB</span><span class="p">[</span><span class="mo">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
+  <span class="n">shapeB</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+
+  <span class="n">transposeA</span> <span class="o">=</span> <span class="mo">0</span><span class="p">;</span>
+  <span class="n">transposeB</span> <span class="o">=</span> <span class="mo">0</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">float</span> <span class="n">process</span><span class="p">(</span><span class="kt">int</span> <span class="n">index</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="p">{</span>
+  <span class="n">initVars</span><span class="p">();</span>
+
+  <span class="c1">// Do the actual matrix multiplication</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>Of course, the drawback with this approach is, that now you have to compile a new shader for each tensor operation
+with slightly different parameters. Compiling the shaders must be done in the browse and also takes a little time,
+so this is not for free either. To avoid doing this expensive compilation for shaders that might only be called once,
+TensorJS uses a hybrid approach:</p>
+<ul>
+<li>Operation invocations by default use a general shader, where parameters have to be passed in via uniforms</li>
+<li>For each invocation, TensorJS logs the parameters of the call. If the same parameters are used for
+  more than <code>k</code> invocations (where <code>k</code> is some sensible threshold), a specialised shader is compiled.</li>
+</ul>
+<p>In practice this means, that using a deep neural network needs a couple of forward passes for "warm up",
+before all necessary shaders are compiled. The upside is that after this warmup, its possible to run
+small CNN's (eg. a MobileNet) in real time! Check <a href="https://hoff97.github.io/tensorjs/examples/mobilenet/">this</a>
+example, which runs a MobileNet pretrained on ImageNet entirely in the browser.</p>
 <h1>Features of TensorJS</h1>
+<p>TensorJS has a few features beyond GPU support:</p>
 <h2>ONNX support</h2>
-<p>TODO: List of supported operators</p>
+<p><a href="https://onnx.ai/">Onnx</a> is an open exchange format for deep learning models supported by most
+deep learning frameworks and inference engines.
+Since my mine gripe with TensorFlow.JS was its lacking support for ONNX models, this feature had
+big priority for me.
+At the time of writing, 75 operators from the ONNX opset are supported, as you can see <a href="https://github.com/Hoff97/tensorjs/blob/master/doc/Operators.md">here</a>. This makes it possible to run the most common
+CNN architectures!</p>
 <h2>Automatic differentiation</h2>
-<p>TODO: Quickly talk about graph representation</p>
+<p>Although training a whole deep neural network in the browser is maybe a bit unrealistic, it is absolutely
+possible to do some finetuning of the last layer(s). To do this, some support for automatic
+differentiation is needed. For this, TensorJS builds a dynamic computation graph (when needed) and
+implements <a href="https://en.wikipedia.org/wiki/Automatic_differentiation#Reverse_accumulation">reverse mode automatic differentiation</a>.</p>
+<p>With this, it's possible to fine tune a model directly in the browser. In <a href="https://hoff97.github.io/tensorjs/examples/facetouch/">this</a> example, a MobileNet is finetuned to detect, if the user is touching the face, and play a warning
+if this is the case. The nice thing about this is that no data ever needs to leave the users device!</p>
 <h2>Optimizers and models</h2>
-<p>TODO: How do optimizers discover model parameters</p>
-<h2>Sparse tensors</h2>
-<p>TODO: Short explanation of sparse tensors</p>
-<h1>Example applications</h1>
-<p>TODO: Mobilenet inference, style transfer, on device model finetuning</p>
+<p>To support the training of small models, TensorJS implements some optimizers, which work similarly to PyTorch:</p>
+<div class="highlight"><pre><span></span><span class="kd">const</span> <span class="nx">l1</span> <span class="o">=</span> <span class="ow">new</span> <span class="nx">Linear</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span> <span class="mf">128</span><span class="p">);</span>
+<span class="kd">const</span> <span class="nx">l2</span> <span class="o">=</span> <span class="ow">new</span> <span class="nx">Relu</span><span class="p">();</span>
+<span class="kd">const</span> <span class="nx">l3</span> <span class="o">=</span> <span class="ow">new</span> <span class="nx">Linear</span><span class="p">(</span><span class="mf">128</span><span class="p">,</span> <span class="mf">128</span><span class="p">);</span>
+<span class="kd">const</span> <span class="nx">l4</span> <span class="o">=</span> <span class="ow">new</span> <span class="nx">Relu</span><span class="p">();</span>
+<span class="kd">const</span> <span class="nx">l5</span> <span class="o">=</span> <span class="ow">new</span> <span class="nx">Linear</span><span class="p">(</span><span class="mf">128</span><span class="p">,</span> <span class="mf">64</span><span class="p">);</span>
+<span class="kd">const</span> <span class="nx">l6</span> <span class="o">=</span> <span class="ow">new</span> <span class="nx">Relu</span><span class="p">();</span>
+<span class="kd">const</span> <span class="nx">l7</span> <span class="o">=</span> <span class="ow">new</span> <span class="nx">Linear</span><span class="p">(</span><span class="mf">64</span><span class="p">,</span> <span class="mf">1</span><span class="p">);</span>
+
+<span class="kd">const</span> <span class="nx">backend</span> <span class="o">=</span> <span class="s1">&#39;GPU&#39;</span><span class="p">;</span>
+
+<span class="kd">const</span> <span class="nx">model</span> <span class="o">=</span> <span class="ow">new</span> <span class="nx">Sequential</span><span class="p">([</span><span class="ow">new</span> <span class="nx">Linear</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span> <span class="mf">128</span><span class="p">),</span> <span class="ow">new</span> <span class="nx">Relu</span><span class="p">(),</span> <span class="ow">new</span> <span class="nx">Linear</span><span class="p">(</span><span class="mf">128</span><span class="p">,</span> <span class="mf">128</span><span class="p">),</span> <span class="ow">new</span> <span class="nx">Relu</span><span class="p">(),</span> <span class="ow">new</span> <span class="nx">Linear</span><span class="p">(</span><span class="mf">128</span><span class="p">,</span> <span class="mf">1</span><span class="p">)]);</span>
+<span class="k">await</span> <span class="nx">model</span><span class="p">.</span><span class="nx">toBackend</span><span class="p">(</span><span class="nx">backend</span><span class="p">);</span>
+
+<span class="kd">let</span> <span class="nx">optimizer</span> <span class="o">=</span> <span class="ow">new</span> <span class="nx">Adam</span><span class="p">(</span><span class="nx">model</span><span class="p">);</span>
+
+<span class="c1">// When training the model</span>
+
+<span class="kd">const</span> <span class="nx">res</span> <span class="o">=</span> <span class="k">await</span> <span class="nx">model</span><span class="p">.</span><span class="nx">forward</span><span class="p">([</span><span class="nx">x</span><span class="p">]);</span>
+<span class="kd">const</span> <span class="nx">los</span> <span class="o">=</span> <span class="nx">computeLoss</span><span class="p">(</span><span class="nx">res</span><span class="p">);</span>
+<span class="nx">loss</span><span class="p">.</span><span class="nx">backward</span><span class="p">();</span>
+<span class="nx">optimizer</span><span class="p">.</span><span class="nx">step</span><span class="p">();</span>
+<span class="nx">optimizer</span><span class="p">.</span><span class="nx">zeroGrads</span><span class="p">();</span>
+</pre></div>
+
+
+<p>A small example where a simple MLP is trained on a simple 1D function is implemented <a href="https://github.com/Hoff97/tensorjs/tree/develop/examples/trainer">here</a>.</p>
 <h1>Possible extensions</h1>
+<p>There are of course, many things that TensorJS is missing, that could still be implemented:</p>
+<ul>
+<li>Usage of multiple threads in the WASM backend: <a href="https://rustwasm.github.io/2018/10/24/multithreading-rust-and-wasm.html">Multiple threads can be used in Rust when compiling to WASM</a>. Unfortunately, there are still browsers that do not support the necessary JS API, <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer#browser_compatibility">shared array buffers</a>.</li>
+<li>Usage of SIMD instructions in the WASM backend: <a href="https://v8.dev/features/simd">WebAssembly has a set of SIMD instructions</a>. Together with threads, this
+  would greatly speed up the WASM backend. On the flipside, to guarantee backward compatibility, the WASM backend would have to implement up to
+  4 versions of each operator (with/without thread support <code>*</code> with/without SIMD support)</li>
+<li><a href="https://github.com/gpuweb/gpuweb">WebGPU</a> is an upcoming API for accessing GPU's from the browser that promises to get rid of many of the restrictions
+  of WebGL. It has support for actual compute shaders, so all the hackery of using a pixel shader as a means of implementing tensor computations
+  could potentially be eliminated.</li>
+</ul>
   </div>
   <div class="tag-cloud">
     <p>
