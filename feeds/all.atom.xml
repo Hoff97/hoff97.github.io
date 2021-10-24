@@ -1,5 +1,228 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>haskai</title><link href="https://hoff97.github.io/" rel="alternate"></link><link href="https://hoff97.github.io/feeds/all.atom.xml" rel="self"></link><id>https://hoff97.github.io/</id><updated>2021-01-13T13:00:00+01:00</updated><subtitle>Software Developer</subtitle><entry><title>Learning Multi-view Camera Relocalization with Graph Neural Networks</title><link href="https://hoff97.github.io/multi-view-reloc.html" rel="alternate"></link><published>2021-01-13T13:00:00+01:00</published><updated>2021-01-13T13:00:00+01:00</updated><author><name>Frithjof Winkelmann</name></author><id>tag:hoff97.github.io,2021-01-13:/multi-view-reloc.html</id><summary type="html">&lt;p&gt;Paper analysis of "Learning Multi-view Camera Relocalization with Graph Neural Networks"&lt;/p&gt;</summary><content type="html">&lt;p&gt;&lt;link rel="stylesheet"  href="{filename}../style.css"&gt;&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>haskai</title><link href="https://hoff97.github.io/" rel="alternate"></link><link href="https://hoff97.github.io/feeds/all.atom.xml" rel="self"></link><id>https://hoff97.github.io/</id><updated>2021-09-16T12:09:00+02:00</updated><subtitle>Software Developer</subtitle><entry><title>TensorJS - Writing a fast deep learning library for the browser</title><link href="https://hoff97.github.io/tensorjs.html" rel="alternate"></link><published>2021-09-16T12:09:00+02:00</published><updated>2021-09-16T12:09:00+02:00</updated><author><name>Frithjof Winkelmann</name></author><id>tag:hoff97.github.io,2021-09-16:/tensorjs.html</id><summary type="html">&lt;p&gt;During the lockdown in spring of 2021 I wrote a deep learning library for the web. Here's what I learned.&lt;/p&gt;</summary><content type="html">&lt;p&gt;When I build &lt;a href="https://detext.haskai.de/client/"&gt;Detext&lt;/a&gt;, I was looking for deep learning libraries for the browser.
+The main 2 options where&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://github.com/microsoft/onnxjs"&gt;Onnx.JS&lt;/a&gt;, developed by Microsoft but not actively maintained at the time&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://www.tensorflow.org/js"&gt;TensorFlow.js&lt;/a&gt;, which is pretty mature and well maintained by facebook, but uses its own storage format for
+  trained networks. Converting a trained Pytorch model to this format proved to be very challenging at the time.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;So, what do you do when there's no viable inference library for executing your
+PyTorch/ONNX model? You write your own library of course.
+The requirements that I had for this library specifically where:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Fast execution of reasonably sized models on most hardware and browsers. For me, reasonably
+  sized meant a MobileNet on the harware that I had access to - a pretty shitty
+  laptop and a Okish mobile phone.&lt;/li&gt;
+&lt;li&gt;A "low level" PyTorch like interface for doing computations with tensors - eg.
+  being able to do something like
+    &lt;code&gt;const a = new Tensor([1,2,3,4,5,6], {shape: [2,3]}); const b = new Tensor([1,2,3,4,5,6], {shape: [3,2]}); a.matmul(b);&lt;/code&gt;
+  I wanted to have this, so that the pre- and postprocessing that most models
+  typically need could be done as fast as executing the model itself.&lt;/li&gt;
+&lt;li&gt;A "high level" interface for executing models stored in the ONNX format.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;In this article I want to go over some of the development challenges that I encountered when
+I wrote this library. You can find it on &lt;a href="https://github.com/Hoff97/tensorjs"&gt;Github&lt;/a&gt;
+and install it from &lt;a href="https://www.npmjs.com/package/@hoff97/tensor-js"&gt;NPM&lt;/a&gt;.&lt;/p&gt;
+&lt;h1&gt;Tensors and how they are layed out in memory&lt;/h1&gt;
+&lt;p&gt;Deep learning frameworks are centered around the concept of a tensor - which to us computer programmers is
+basically a multidimensional array. Consider a multi dimensional array/tensor like the following one:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;[[[1,2,3,4],
+  [5,6,7,8],
+  [9,10,11,12]],
+
+ [[13,14,15,16],
+  [17,18,19,20],
+  [21,22,23,24]]]
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This tensor has 3 dimensions, which we call its "rank". The dimensions have a length of
+&lt;code&gt;[2,3,4]&lt;/code&gt; respectively, which we summarize as the tensors shape. The simplest layout
+to store tensors in memory is called the contiguous layout - which basically
+just stores the values in the order that you specify them, together with the shape of the tensor.&lt;/p&gt;
+&lt;p&gt;This layout allows you to have zero-copy reshapes of tensors, but not much else.
+While there is also the strided layout that allows you to have zero copy
+transpose and range selection operations, I chose to go with the contiguous layout,
+since its easy to implement.&lt;/p&gt;
+&lt;h1&gt;Execution backends on the Web&lt;/h1&gt;
+&lt;p&gt;While tensor operations are very straightforward to implement in Javascript, these implementations
+will not be fast enough to execute any reasonably sized model.
+Luckily there are other options for fast code execution:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://webassembly.org/"&gt;Webassembly&lt;/a&gt;, a binary instruction format that can give you faster runtime than simple 
+  Javascript - if optimized sufficiently.&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://en.wikipedia.org/wiki/WebGL"&gt;WebGL&lt;/a&gt;, a Javascript API intended for 2D and 3D rendering.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;Webassembly&lt;/h2&gt;
+&lt;p&gt;Webassembly (WASM) by now is supported by all major browsers. While you can in principle handwrite Webassembly
+in the &lt;a href="https://developer.mozilla.org/en-US/docs/WebAssembly/Understanding_the_text_format"&gt;WAT format&lt;/a&gt;,
+I chose to use Rust. Compiling to WASM is pretty well supported and
+&lt;a href="https://github.com/rustwasm/wasm-bindgen"&gt;wasm-bindgen&lt;/a&gt; even generates the JS boilerplate code
+for calling into WASM, and corresponding Typescript Type definitions for you.
+With this writing the WASM backend was way simpler than expected.&lt;/p&gt;
+&lt;h2&gt;WebGL&lt;/h2&gt;
+&lt;p&gt;WebGL was originally intended for 2D and 3D visualizations accelerated by GPUs.
+So how do you abuse this API to implement fast tensor operations?&lt;/p&gt;
+&lt;p&gt;The traditional pipeline in WebGL looks a bit like this:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="WebGL standard pipeline" src="{filename}/../images/tensorjs/webgl_standard.png"&gt;&lt;/p&gt;
+&lt;p&gt;You feed the geometry of the scene and textures to the vertex and fragment shaders.
+The vertex shader determines the position of all vertices on the screen, while
+the fragment shader determines the color of each pixel on the screen - typically
+using the textures.&lt;/p&gt;
+&lt;p&gt;By setting up a very simple scene geometry of a single rectengular plane
+that fills up the whole screen, you can use the textures as
+your input tensors and treat the rendered output as the result tensor.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="WebGL for GPGPU" src="{filename}/../images/tensorjs/webgl_gpgpu.png"&gt;&lt;/p&gt;
+&lt;p&gt;Doing this allows you to implement many operations by simply writing the correct
+fragment shader.&lt;/p&gt;
+&lt;p&gt;There is one detail that I'm going over here - which is the conversion of tensors
+to textures and back. For this you&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Represent the tensor in the contiguous layout&lt;/li&gt;
+&lt;li&gt;Create a texture of fitting height and width. If the tensor has a size that is not conveniently 
+   dividable into integer width and height you create a texture that is slightly bigger than needed.&lt;/li&gt;
+&lt;li&gt;You fill the tensor data into the texture pixels row by row. Since each pixel consists of
+   4 floating point values for the red, green, blue and transparent component, you only need
+   1/4th of the pixels of the size of your tensor.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;In the fragment shader you of course also have to do this conversion between tensor indices
+and texture coordinates.&lt;/p&gt;
+&lt;h3&gt;Considerations for fast speed&lt;/h3&gt;
+&lt;p&gt;With this setup, its possible to implement quite a few tensor operations. But just running stuff in WebGL
+naively is not enough to get fast inference. For this you have to be very careful to move
+as little data as possible between the CPU and the GPU. When does this happen? Well for example when:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;A new shader gets compiled. This is super slow, and thus should only be done once for each shader&lt;/li&gt;
+&lt;li&gt;Tensor values are transferred to the GPU&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;These two are maybe obvious, but there's a third case that can really slow down shader execution speeds.
+For many operations you have to provide additional information. Take the matrix multiplication operation
+for example. A rough implementation in GLSL, the Shading Language in WebGL, might look something like this:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;uniform&lt;/span&gt; &lt;span class="kt"&gt;sampler2D&lt;/span&gt; &lt;span class="n"&gt;_A&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="k"&gt;uniform&lt;/span&gt; &lt;span class="kt"&gt;sampler2D&lt;/span&gt; &lt;span class="n"&gt;_B&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+&lt;span class="k"&gt;uniform&lt;/span&gt; &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;shapeA&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+&lt;span class="k"&gt;uniform&lt;/span&gt; &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;shapeB&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+
+&lt;span class="k"&gt;uniform&lt;/span&gt; &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;transposeA&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="k"&gt;uniform&lt;/span&gt; &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;transposeB&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+&lt;span class="kt"&gt;float&lt;/span&gt; &lt;span class="n"&gt;process&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;index&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="c1"&gt;// Do the actual matrix multiplication&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Next to the actual input tensors, which are passed in as textures accessed by samplers, we provide additional
+information like the shape of the both input tensors and if they are transposed. These uniforms are passed
+in from Javascript before running the actual shader:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kd"&gt;var&lt;/span&gt; &lt;span class="nx"&gt;offsetTransposeA&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;gl&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;getUniformLocation&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;matrixMultProgramm&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;transposeA&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="nx"&gt;gl&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;uniform1i&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;offsetTransposeA&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mf"&gt;0&lt;/span&gt; &lt;span class="cm"&gt;/* Or 1 if A is transposed */&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="c1"&gt;// Do the same for all other uniforms&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This approach has the advantage, that you only ever need to compile one shader for one type of tensor operation.
+Unfortunately, the calls to &lt;code&gt;gl.uniform*&lt;/code&gt;, which transfer data from the CPU to the GPU, end up taking longer than the
+shader invocations themselves. So what can you do to avoid the transfers between CPU and GPU? Compile
+these uniforms as constants into the shaders themselves instead! The above programm would instead look something like
+this, when compiled for two tensors of shape &lt;code&gt;[3,4]&lt;/code&gt; and &lt;code&gt;[4,5]&lt;/code&gt;.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;uniform&lt;/span&gt; &lt;span class="kt"&gt;sampler2D&lt;/span&gt; &lt;span class="n"&gt;_A&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="k"&gt;uniform&lt;/span&gt; &lt;span class="kt"&gt;sampler2D&lt;/span&gt; &lt;span class="n"&gt;_B&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+&lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;shapeA&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+&lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;shapeB&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+
+&lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;transposeA&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;transposeB&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="n"&gt;initVars&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="n"&gt;shapeA&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mo"&gt;0&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="n"&gt;shapeA&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+  &lt;span class="n"&gt;shapeB&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mo"&gt;0&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="n"&gt;shapeB&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;5&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+  &lt;span class="n"&gt;transposeA&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mo"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="n"&gt;transposeB&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mo"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="kt"&gt;float&lt;/span&gt; &lt;span class="n"&gt;process&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;index&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="n"&gt;initVars&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+
+  &lt;span class="c1"&gt;// Do the actual matrix multiplication&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Of course, the drawback with this approach is, that now you have to compile a new shader for each tensor operation
+with slightly different parameters. Compiling the shaders must be done in the browse and also takes a little time,
+so this is not for free either. To avoid doing this expensive compilation for shaders that might only be called once,
+TensorJS uses a hybrid approach:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Operation invocations by default use a general shader, where parameters have to be passed in via uniforms&lt;/li&gt;
+&lt;li&gt;For each invocation, TensorJS logs the parameters of the call. If the same parameters are used for
+  more than &lt;code&gt;k&lt;/code&gt; invocations (where &lt;code&gt;k&lt;/code&gt; is some sensible threshold), a specialised shader is compiled.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;In practice this means, that using a deep neural network needs a couple of forward passes for "warm up",
+before all necessary shaders are compiled. The upside is that after this warmup, its possible to run
+small CNN's (eg. a MobileNet) in real time! Check &lt;a href="https://hoff97.github.io/tensorjs/examples/mobilenet/"&gt;this&lt;/a&gt;
+example, which runs a MobileNet pretrained on ImageNet entirely in the browser.&lt;/p&gt;
+&lt;h1&gt;Features of TensorJS&lt;/h1&gt;
+&lt;p&gt;TensorJS has a few features beyond GPU support:&lt;/p&gt;
+&lt;h2&gt;ONNX support&lt;/h2&gt;
+&lt;p&gt;&lt;a href="https://onnx.ai/"&gt;Onnx&lt;/a&gt; is an open exchange format for deep learning models supported by most
+deep learning frameworks and inference engines.
+Since my mine gripe with TensorFlow.JS was its lacking support for ONNX models, this feature had
+big priority for me.
+At the time of writing, 75 operators from the ONNX opset are supported, as you can see &lt;a href="https://github.com/Hoff97/tensorjs/blob/master/doc/Operators.md"&gt;here&lt;/a&gt;. This makes it possible to run the most common
+CNN architectures!&lt;/p&gt;
+&lt;h2&gt;Automatic differentiation&lt;/h2&gt;
+&lt;p&gt;Although training a whole deep neural network in the browser is maybe a bit unrealistic, it is absolutely
+possible to do some finetuning of the last layer(s). To do this, some support for automatic
+differentiation is needed. For this, TensorJS builds a dynamic computation graph (when needed) and
+implements &lt;a href="https://en.wikipedia.org/wiki/Automatic_differentiation#Reverse_accumulation"&gt;reverse mode automatic differentiation&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;With this, it's possible to fine tune a model directly in the browser. In &lt;a href="https://hoff97.github.io/tensorjs/examples/facetouch/"&gt;this&lt;/a&gt; example, a MobileNet is finetuned to detect, if the user is touching the face, and play a warning
+if this is the case. The nice thing about this is that no data ever needs to leave the users device!&lt;/p&gt;
+&lt;h2&gt;Optimizers and models&lt;/h2&gt;
+&lt;p&gt;To support the training of small models, TensorJS implements some optimizers, which work similarly to PyTorch:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kd"&gt;const&lt;/span&gt; &lt;span class="nx"&gt;l1&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="ow"&gt;new&lt;/span&gt; &lt;span class="nx"&gt;Linear&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mf"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mf"&gt;128&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="kd"&gt;const&lt;/span&gt; &lt;span class="nx"&gt;l2&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="ow"&gt;new&lt;/span&gt; &lt;span class="nx"&gt;Relu&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+&lt;span class="kd"&gt;const&lt;/span&gt; &lt;span class="nx"&gt;l3&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="ow"&gt;new&lt;/span&gt; &lt;span class="nx"&gt;Linear&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mf"&gt;128&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mf"&gt;128&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="kd"&gt;const&lt;/span&gt; &lt;span class="nx"&gt;l4&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="ow"&gt;new&lt;/span&gt; &lt;span class="nx"&gt;Relu&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+&lt;span class="kd"&gt;const&lt;/span&gt; &lt;span class="nx"&gt;l5&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="ow"&gt;new&lt;/span&gt; &lt;span class="nx"&gt;Linear&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mf"&gt;128&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mf"&gt;64&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="kd"&gt;const&lt;/span&gt; &lt;span class="nx"&gt;l6&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="ow"&gt;new&lt;/span&gt; &lt;span class="nx"&gt;Relu&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+&lt;span class="kd"&gt;const&lt;/span&gt; &lt;span class="nx"&gt;l7&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="ow"&gt;new&lt;/span&gt; &lt;span class="nx"&gt;Linear&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mf"&gt;64&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mf"&gt;1&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+&lt;span class="kd"&gt;const&lt;/span&gt; &lt;span class="nx"&gt;backend&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;GPU&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+&lt;span class="kd"&gt;const&lt;/span&gt; &lt;span class="nx"&gt;model&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="ow"&gt;new&lt;/span&gt; &lt;span class="nx"&gt;Sequential&lt;/span&gt;&lt;span class="p"&gt;([&lt;/span&gt;&lt;span class="ow"&gt;new&lt;/span&gt; &lt;span class="nx"&gt;Linear&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mf"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mf"&gt;128&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="ow"&gt;new&lt;/span&gt; &lt;span class="nx"&gt;Relu&lt;/span&gt;&lt;span class="p"&gt;(),&lt;/span&gt; &lt;span class="ow"&gt;new&lt;/span&gt; &lt;span class="nx"&gt;Linear&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mf"&gt;128&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mf"&gt;128&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="ow"&gt;new&lt;/span&gt; &lt;span class="nx"&gt;Relu&lt;/span&gt;&lt;span class="p"&gt;(),&lt;/span&gt; &lt;span class="ow"&gt;new&lt;/span&gt; &lt;span class="nx"&gt;Linear&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mf"&gt;128&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mf"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)]);&lt;/span&gt;
+&lt;span class="k"&gt;await&lt;/span&gt; &lt;span class="nx"&gt;model&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;toBackend&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;backend&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+&lt;span class="kd"&gt;let&lt;/span&gt; &lt;span class="nx"&gt;optimizer&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="ow"&gt;new&lt;/span&gt; &lt;span class="nx"&gt;Adam&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;model&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+&lt;span class="c1"&gt;// When training the model&lt;/span&gt;
+
+&lt;span class="kd"&gt;const&lt;/span&gt; &lt;span class="nx"&gt;res&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;await&lt;/span&gt; &lt;span class="nx"&gt;model&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;forward&lt;/span&gt;&lt;span class="p"&gt;([&lt;/span&gt;&lt;span class="nx"&gt;x&lt;/span&gt;&lt;span class="p"&gt;]);&lt;/span&gt;
+&lt;span class="kd"&gt;const&lt;/span&gt; &lt;span class="nx"&gt;los&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;computeLoss&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;res&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="nx"&gt;loss&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;backward&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+&lt;span class="nx"&gt;optimizer&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;step&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+&lt;span class="nx"&gt;optimizer&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;zeroGrads&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;A small example where a simple MLP is trained on a simple 1D function is implemented &lt;a href="https://github.com/Hoff97/tensorjs/tree/develop/examples/trainer"&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;h1&gt;Possible extensions&lt;/h1&gt;
+&lt;p&gt;There are of course, many things that TensorJS is missing, that could still be implemented:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Usage of multiple threads in the WASM backend: &lt;a href="https://rustwasm.github.io/2018/10/24/multithreading-rust-and-wasm.html"&gt;Multiple threads can be used in Rust when compiling to WASM&lt;/a&gt;. Unfortunately, there are still browsers that do not support the necessary JS API, &lt;a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer#browser_compatibility"&gt;shared array buffers&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;Usage of SIMD instructions in the WASM backend: &lt;a href="https://v8.dev/features/simd"&gt;WebAssembly has a set of SIMD instructions&lt;/a&gt;. Together with threads, this
+  would greatly speed up the WASM backend. On the flipside, to guarantee backward compatibility, the WASM backend would have to implement up to
+  4 versions of each operator (with/without thread support &lt;code&gt;*&lt;/code&gt; with/without SIMD support)&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://github.com/gpuweb/gpuweb"&gt;WebGPU&lt;/a&gt; is an upcoming API for accessing GPU's from the browser that promises to get rid of many of the restrictions
+  of WebGL. It has support for actual compute shaders, so all the hackery of using a pixel shader as a means of implementing tensor computations
+  could potentially be eliminated.&lt;/li&gt;
+&lt;/ul&gt;</content><category term="Machine learning"></category><category term="deep-learning"></category><category term="javascript"></category></entry><entry><title>Learning Multi-view Camera Relocalization with Graph Neural Networks</title><link href="https://hoff97.github.io/multi-view-reloc.html" rel="alternate"></link><published>2021-01-13T13:00:00+01:00</published><updated>2021-01-13T13:00:00+01:00</updated><author><name>Frithjof Winkelmann</name></author><id>tag:hoff97.github.io,2021-01-13:/multi-view-reloc.html</id><summary type="html">&lt;p&gt;Paper analysis of "Learning Multi-view Camera Relocalization with Graph Neural Networks"&lt;/p&gt;</summary><content type="html">&lt;p&gt;&lt;link rel="stylesheet"  href="{filename}../style.css"&gt;&lt;/p&gt;
 &lt;p&gt;This blog post will review the paper
 &lt;a href="https://openaccess.thecvf.com/content_CVPR_2020/html/Xue_Learning_Multi-View_Camera_Relocalization_With_Graph_Neural_Networks_CVPR_2020_paper.html"&gt;Learning Multi-view Camera Relocalization with Graph Neural Networks&lt;/a&gt;
 presented at CVPR 2020. I will cover related literature,
