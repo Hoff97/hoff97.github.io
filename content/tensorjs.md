@@ -123,30 +123,144 @@ as little data as possible between the CPU and the GPU. When does this happen? W
 - Tensor values are transferred to the GPU
 
 These two are maybe obvious, but there's a third case that can really slow down shader execution speeds.
-For many operations you have to provide additional information
+For many operations you have to provide additional information. Take the matrix multiplication operation
+for example. A rough implementation in GLSL, the Shading Language in WebGL, might look something like this:
 
-TODO: talk about precompiling shaders, keeping all data on GPU
+```glsl
+uniform sampler2D _A;
+uniform sampler2D _B;
+
+uniform int shapeA[2];
+uniform int shapeB[2];
+
+uniform int transposeA;
+uniform int transposeB;
+
+float process(int index[2]) {
+  // Do the actual matrix multiplication
+}
+```
+
+Next to the actual input tensors, which are passed in as textures accessed by samplers, we provide additional
+information like the shape of the both input tensors and if they are transposed. These uniforms are passed
+in from Javascript before running the actual shader:
+
+```typescript
+var offsetTransposeA = gl.getUniformLocation(matrixMultProgramm, "transposeA");
+gl.uniform1i (offsetTransposeA, 0 /* Or 1 if A is transposed */);
+// Do the same for all other uniforms
+```
+
+This approach has the advantage, that you only ever need to compile one shader for one type of tensor operation.
+Unfortunately, the calls to `gl.uniform*`, which transfer data from the CPU to the GPU, end up taking longer than the
+shader invocations themselves. So what can you do to avoid the transfers between CPU and GPU? Compile
+these uniforms as constants into the shaders themselves instead! The above programm would instead look something like
+this, when compiled for two tensors of shape `[3,4]` and `[4,5]`.
+
+```glsl
+uniform sampler2D _A;
+uniform sampler2D _B;
+
+int shapeA[2];
+int shapeB[2];
+
+int transposeA;
+int transposeB;
+
+void initVars() {
+  shapeA[0] = 3;
+  shapeA[1] = 4;
+
+  shapeB[0] = 4;
+  shapeB[1] = 5;
+
+  transposeA = 0;
+  transposeB = 0;
+}
+
+float process(int index[2]) {
+  initVars();
+
+  // Do the actual matrix multiplication
+}
+```
+
+Of course, the drawback with this approach is, that now you have to compile a new shader for each tensor operation
+with slightly different parameters. Compiling the shaders must be done in the browse and also takes a little time,
+so this is not for free either. To avoid doing this expensive compilation for shaders that might only be called once,
+TensorJS uses a hybrid approach:
+
+- Operation invocations by default use a general shader, where parameters have to be passed in via uniforms
+- For each invocation, TensorJS logs the parameters of the call. If the same parameters are used for
+  more than `k` invocations (where `k` is some sensible threshold), a specialised shader is compiled.
+
+In practice this means, that using a deep neural network needs a couple of forward passes for "warm up",
+before all necessary shaders are compiled. The upside is that after this warmup, its possible to run
+small CNN's (eg. a MobileNet) in real time! Check [this](https://hoff97.github.io/tensorjs/examples/mobilenet/)
+example, which runs a MobileNet pretrained on ImageNet entirely in the browser.
 
 # Features of TensorJS
 
+TensorJS has a few features beyond GPU support:
+
 ## ONNX support
 
-TODO: List of supported operators
+[Onnx](https://onnx.ai/) is an open exchange format for deep learning models supported by most
+deep learning frameworks and inference engines.
+Since my mine gripe with TensorFlow.JS was its lacking support for ONNX models, this feature had
+big priority for me.
+At the time of writing, 75 operators from the ONNX opset are supported, as you can see [here](https://github.com/Hoff97/tensorjs/blob/master/doc/Operators.md). This makes it possible to run the most common
+CNN architectures!
 
 ## Automatic differentiation
 
-TODO: Quickly talk about graph representation
+Although training a whole deep neural network in the browser is maybe a bit unrealistic, it is absolutely
+possible to do some finetuning of the last layer(s). To do this, some support for automatic
+differentiation is needed. For this, TensorJS builds a dynamic computation graph (when needed) and
+implements [reverse mode automatic differentiation](https://en.wikipedia.org/wiki/Automatic_differentiation#Reverse_accumulation).
+
+With this, it's possible to fine tune a model directly in the browser. In [this](https://hoff97.github.io/tensorjs/examples/facetouch/) example, a MobileNet is finetuned to detect, if the user is touching the face, and play a warning
+if this is the case. The nice thing about this is that no data ever needs to leave the users device!
 
 ## Optimizers and models
 
-TODO: How do optimizers discover model parameters
+To support the training of small models, TensorJS implements some optimizers, which work similarly to PyTorch:
 
-## Sparse tensors
+```typescript
+const l1 = new Linear(1, 128);
+const l2 = new Relu();
+const l3 = new Linear(128, 128);
+const l4 = new Relu();
+const l5 = new Linear(128, 64);
+const l6 = new Relu();
+const l7 = new Linear(64, 1);
 
-TODO: Short explanation of sparse tensors
+const backend = 'GPU';
 
-# Example applications
+const model = new Sequential([new Linear(1, 128), new Relu(), new Linear(128, 128), new Relu(), new Linear(128, 1)]);
+await model.toBackend(backend);
 
-TODO: Mobilenet inference, style transfer, on device model finetuning
+let optimizer = new Adam(model);
+
+// When training the model
+
+const res = await model.forward([x]);
+const los = computeLoss(res);
+loss.backward();
+optimizer.step();
+optimizer.zeroGrads();
+```
+
+A small example where a simple MLP is trained on a simple 1D function is implemented [here](https://github.com/Hoff97/tensorjs/tree/develop/examples/trainer).
 
 # Possible extensions
+
+There are of course, many things that TensorJS is missing, that could still be implemented:
+
+- Usage of multiple threads in the WASM backend: [Multiple threads can be used in Rust when compiling to WASM](https://rustwasm.github.io/2018/10/24/multithreading-rust-and-wasm.html). Unfortunately, there are still browsers that do not support the necessary JS API, [shared array buffers](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer#browser_compatibility).
+- Usage of SIMD instructions in the WASM backend: [WebAssembly has a set of SIMD instructions](https://v8.dev/features/simd). Together with threads, this
+  would greatly speed up the WASM backend. On the flipside, to guarantee backward compatibility, the WASM backend would have to implement up to
+  4 versions of each operator (with/without thread support `*` with/without SIMD support)
+- [WebGPU](https://github.com/gpuweb/gpuweb) is an upcoming API for accessing GPU's from the browser that promises to get rid of many of the restrictions
+  of WebGL. It has support for actual compute shaders, so all the hackery of using a pixel shader as a means of implementing tensor computations
+  could potentially be eliminated.
