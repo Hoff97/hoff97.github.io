@@ -229,27 +229,27 @@ as little data as possible between the CPU and the GPU. When does this happen? W
 <p>These two are maybe obvious, but there's a third case that can really slow down shader execution speeds.
 For many operations you have to provide additional information. Take the matrix multiplication operation
 for example. A rough implementation in GLSL, the Shading Language in WebGL, might look something like this:</p>
-<div class="highlight"><pre><span></span><span class="k">uniform</span> <span class="kt">sampler2D</span> <span class="n">_A</span><span class="p">;</span>
-<span class="k">uniform</span> <span class="kt">sampler2D</span> <span class="n">_B</span><span class="p">;</span>
+<div class="highlight"><pre><span></span><span class="k">uniform</span><span class="w"> </span><span class="kt">sampler2D</span><span class="w"> </span><span class="n">_A</span><span class="p">;</span><span class="w"></span>
+<span class="k">uniform</span><span class="w"> </span><span class="kt">sampler2D</span><span class="w"> </span><span class="n">_B</span><span class="p">;</span><span class="w"></span>
 
-<span class="k">uniform</span> <span class="kt">int</span> <span class="n">shapeA</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
-<span class="k">uniform</span> <span class="kt">int</span> <span class="n">shapeB</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
+<span class="k">uniform</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">shapeA</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span><span class="w"></span>
+<span class="k">uniform</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">shapeB</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span><span class="w"></span>
 
-<span class="k">uniform</span> <span class="kt">int</span> <span class="n">transposeA</span><span class="p">;</span>
-<span class="k">uniform</span> <span class="kt">int</span> <span class="n">transposeB</span><span class="p">;</span>
+<span class="k">uniform</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">transposeA</span><span class="p">;</span><span class="w"></span>
+<span class="k">uniform</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">transposeB</span><span class="p">;</span><span class="w"></span>
 
-<span class="kt">float</span> <span class="n">process</span><span class="p">(</span><span class="kt">int</span> <span class="n">index</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="p">{</span>
-  <span class="c1">// Do the actual matrix multiplication</span>
-<span class="p">}</span>
+<span class="kt">float</span><span class="w"> </span><span class="n">process</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">index</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="c1">// Do the actual matrix multiplication</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 
 
 <p>Next to the actual input tensors, which are passed in as textures accessed by samplers, we provide additional
 information like the shape of the both input tensors and if they are transposed. These uniforms are passed
 in from Javascript before running the actual shader:</p>
-<div class="highlight"><pre><span></span><span class="kd">var</span> <span class="nx">offsetTransposeA</span> <span class="o">=</span> <span class="nx">gl</span><span class="p">.</span><span class="nx">getUniformLocation</span><span class="p">(</span><span class="nx">matrixMultProgramm</span><span class="p">,</span> <span class="s2">&quot;transposeA&quot;</span><span class="p">);</span>
-<span class="nx">gl</span><span class="p">.</span><span class="nx">uniform1i</span> <span class="p">(</span><span class="nx">offsetTransposeA</span><span class="p">,</span> <span class="mf">0</span> <span class="cm">/* Or 1 if A is transposed */</span><span class="p">);</span>
-<span class="c1">// Do the same for all other uniforms</span>
+<div class="highlight"><pre><span></span><span class="kd">var</span><span class="w"> </span><span class="nx">offsetTransposeA</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">gl</span><span class="p">.</span><span class="nx">getUniformLocation</span><span class="p">(</span><span class="nx">matrixMultProgramm</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;transposeA&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="nx">gl</span><span class="p">.</span><span class="nx">uniform1i</span><span class="w"> </span><span class="p">(</span><span class="nx">offsetTransposeA</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="w"> </span><span class="cm">/* Or 1 if A is transposed */</span><span class="p">);</span><span class="w"></span>
+<span class="c1">// Do the same for all other uniforms</span><span class="w"></span>
 </pre></div>
 
 
@@ -258,31 +258,31 @@ Unfortunately, the calls to <code>gl.uniform*</code>, which transfer data from t
 shader invocations themselves. So what can you do to avoid the transfers between CPU and GPU? Compile
 these uniforms as constants into the shaders themselves instead! The above programm would instead look something like
 this, when compiled for two tensors of shape <code>[3,4]</code> and <code>[4,5]</code>.</p>
-<div class="highlight"><pre><span></span><span class="k">uniform</span> <span class="kt">sampler2D</span> <span class="n">_A</span><span class="p">;</span>
-<span class="k">uniform</span> <span class="kt">sampler2D</span> <span class="n">_B</span><span class="p">;</span>
+<div class="highlight"><pre><span></span><span class="k">uniform</span><span class="w"> </span><span class="kt">sampler2D</span><span class="w"> </span><span class="n">_A</span><span class="p">;</span><span class="w"></span>
+<span class="k">uniform</span><span class="w"> </span><span class="kt">sampler2D</span><span class="w"> </span><span class="n">_B</span><span class="p">;</span><span class="w"></span>
 
-<span class="kt">int</span> <span class="n">shapeA</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
-<span class="kt">int</span> <span class="n">shapeB</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">shapeA</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span><span class="w"></span>
+<span class="kt">int</span><span class="w"> </span><span class="n">shapeB</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span><span class="w"></span>
 
-<span class="kt">int</span> <span class="n">transposeA</span><span class="p">;</span>
-<span class="kt">int</span> <span class="n">transposeB</span><span class="p">;</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">transposeA</span><span class="p">;</span><span class="w"></span>
+<span class="kt">int</span><span class="w"> </span><span class="n">transposeB</span><span class="p">;</span><span class="w"></span>
 
-<span class="kt">void</span> <span class="n">initVars</span><span class="p">()</span> <span class="p">{</span>
-  <span class="n">shapeA</span><span class="p">[</span><span class="mo">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
-  <span class="n">shapeA</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">initVars</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="n">shapeA</span><span class="p">[</span><span class="mo">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">shapeA</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4</span><span class="p">;</span><span class="w"></span>
 
-  <span class="n">shapeB</span><span class="p">[</span><span class="mo">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
-  <span class="n">shapeB</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+<span class="w">  </span><span class="n">shapeB</span><span class="p">[</span><span class="mo">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">shapeB</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span><span class="p">;</span><span class="w"></span>
 
-  <span class="n">transposeA</span> <span class="o">=</span> <span class="mo">0</span><span class="p">;</span>
-  <span class="n">transposeB</span> <span class="o">=</span> <span class="mo">0</span><span class="p">;</span>
-<span class="p">}</span>
+<span class="w">  </span><span class="n">transposeA</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mo">0</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">transposeB</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mo">0</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 
-<span class="kt">float</span> <span class="n">process</span><span class="p">(</span><span class="kt">int</span> <span class="n">index</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="p">{</span>
-  <span class="n">initVars</span><span class="p">();</span>
+<span class="kt">float</span><span class="w"> </span><span class="n">process</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">index</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="n">initVars</span><span class="p">();</span><span class="w"></span>
 
-  <span class="c1">// Do the actual matrix multiplication</span>
-<span class="p">}</span>
+<span class="w">  </span><span class="c1">// Do the actual matrix multiplication</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 
 
@@ -317,28 +317,28 @@ implements <a href="https://en.wikipedia.org/wiki/Automatic_differentiation#Reve
 if this is the case. The nice thing about this is that no data ever needs to leave the users device!</p>
 <h2>Optimizers and models</h2>
 <p>To support the training of small models, TensorJS implements some optimizers, which work similarly to PyTorch:</p>
-<div class="highlight"><pre><span></span><span class="kd">const</span> <span class="nx">l1</span> <span class="o">=</span> <span class="ow">new</span> <span class="nx">Linear</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span> <span class="mf">128</span><span class="p">);</span>
-<span class="kd">const</span> <span class="nx">l2</span> <span class="o">=</span> <span class="ow">new</span> <span class="nx">Relu</span><span class="p">();</span>
-<span class="kd">const</span> <span class="nx">l3</span> <span class="o">=</span> <span class="ow">new</span> <span class="nx">Linear</span><span class="p">(</span><span class="mf">128</span><span class="p">,</span> <span class="mf">128</span><span class="p">);</span>
-<span class="kd">const</span> <span class="nx">l4</span> <span class="o">=</span> <span class="ow">new</span> <span class="nx">Relu</span><span class="p">();</span>
-<span class="kd">const</span> <span class="nx">l5</span> <span class="o">=</span> <span class="ow">new</span> <span class="nx">Linear</span><span class="p">(</span><span class="mf">128</span><span class="p">,</span> <span class="mf">64</span><span class="p">);</span>
-<span class="kd">const</span> <span class="nx">l6</span> <span class="o">=</span> <span class="ow">new</span> <span class="nx">Relu</span><span class="p">();</span>
-<span class="kd">const</span> <span class="nx">l7</span> <span class="o">=</span> <span class="ow">new</span> <span class="nx">Linear</span><span class="p">(</span><span class="mf">64</span><span class="p">,</span> <span class="mf">1</span><span class="p">);</span>
+<div class="highlight"><pre><span></span><span class="kd">const</span><span class="w"> </span><span class="nx">l1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Linear</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">128</span><span class="p">);</span><span class="w"></span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">l2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Relu</span><span class="p">();</span><span class="w"></span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">l3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Linear</span><span class="p">(</span><span class="mf">128</span><span class="p">,</span><span class="w"> </span><span class="mf">128</span><span class="p">);</span><span class="w"></span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">l4</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Relu</span><span class="p">();</span><span class="w"></span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">l5</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Linear</span><span class="p">(</span><span class="mf">128</span><span class="p">,</span><span class="w"> </span><span class="mf">64</span><span class="p">);</span><span class="w"></span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">l6</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Relu</span><span class="p">();</span><span class="w"></span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">l7</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Linear</span><span class="p">(</span><span class="mf">64</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span><span class="w"></span>
 
-<span class="kd">const</span> <span class="nx">backend</span> <span class="o">=</span> <span class="s1">&#39;GPU&#39;</span><span class="p">;</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">backend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;GPU&#39;</span><span class="p">;</span><span class="w"></span>
 
-<span class="kd">const</span> <span class="nx">model</span> <span class="o">=</span> <span class="ow">new</span> <span class="nx">Sequential</span><span class="p">([</span><span class="ow">new</span> <span class="nx">Linear</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span> <span class="mf">128</span><span class="p">),</span> <span class="ow">new</span> <span class="nx">Relu</span><span class="p">(),</span> <span class="ow">new</span> <span class="nx">Linear</span><span class="p">(</span><span class="mf">128</span><span class="p">,</span> <span class="mf">128</span><span class="p">),</span> <span class="ow">new</span> <span class="nx">Relu</span><span class="p">(),</span> <span class="ow">new</span> <span class="nx">Linear</span><span class="p">(</span><span class="mf">128</span><span class="p">,</span> <span class="mf">1</span><span class="p">)]);</span>
-<span class="k">await</span> <span class="nx">model</span><span class="p">.</span><span class="nx">toBackend</span><span class="p">(</span><span class="nx">backend</span><span class="p">);</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">model</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Sequential</span><span class="p">([</span><span class="ow">new</span><span class="w"> </span><span class="nx">Linear</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">128</span><span class="p">),</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Relu</span><span class="p">(),</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Linear</span><span class="p">(</span><span class="mf">128</span><span class="p">,</span><span class="w"> </span><span class="mf">128</span><span class="p">),</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Relu</span><span class="p">(),</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Linear</span><span class="p">(</span><span class="mf">128</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">)]);</span><span class="w"></span>
+<span class="k">await</span><span class="w"> </span><span class="nx">model</span><span class="p">.</span><span class="nx">toBackend</span><span class="p">(</span><span class="nx">backend</span><span class="p">);</span><span class="w"></span>
 
-<span class="kd">let</span> <span class="nx">optimizer</span> <span class="o">=</span> <span class="ow">new</span> <span class="nx">Adam</span><span class="p">(</span><span class="nx">model</span><span class="p">);</span>
+<span class="kd">let</span><span class="w"> </span><span class="nx">optimizer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Adam</span><span class="p">(</span><span class="nx">model</span><span class="p">);</span><span class="w"></span>
 
-<span class="c1">// When training the model</span>
+<span class="c1">// When training the model</span><span class="w"></span>
 
-<span class="kd">const</span> <span class="nx">res</span> <span class="o">=</span> <span class="k">await</span> <span class="nx">model</span><span class="p">.</span><span class="nx">forward</span><span class="p">([</span><span class="nx">x</span><span class="p">]);</span>
-<span class="kd">const</span> <span class="nx">los</span> <span class="o">=</span> <span class="nx">computeLoss</span><span class="p">(</span><span class="nx">res</span><span class="p">);</span>
-<span class="nx">loss</span><span class="p">.</span><span class="nx">backward</span><span class="p">();</span>
-<span class="nx">optimizer</span><span class="p">.</span><span class="nx">step</span><span class="p">();</span>
-<span class="nx">optimizer</span><span class="p">.</span><span class="nx">zeroGrads</span><span class="p">();</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">model</span><span class="p">.</span><span class="nx">forward</span><span class="p">([</span><span class="nx">x</span><span class="p">]);</span><span class="w"></span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">los</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">computeLoss</span><span class="p">(</span><span class="nx">res</span><span class="p">);</span><span class="w"></span>
+<span class="nx">loss</span><span class="p">.</span><span class="nx">backward</span><span class="p">();</span><span class="w"></span>
+<span class="nx">optimizer</span><span class="p">.</span><span class="nx">step</span><span class="p">();</span><span class="w"></span>
+<span class="nx">optimizer</span><span class="p">.</span><span class="nx">zeroGrads</span><span class="p">();</span><span class="w"></span>
 </pre></div>
 
 
